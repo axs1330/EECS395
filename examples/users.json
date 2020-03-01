@@ -1,0 +1,51 @@
+[
+  {
+    "_id": "tcj16@case.edu",
+    "name": "Tom Jones",
+    "token": null,
+    "groups": [
+      "395",
+      "491",
+      "531"
+    ],
+    "user_prefs": {
+
+    }
+  },
+  {
+    "_id": "pgw8@case.edu",
+    "name": "Paul Williams",
+    "token": null,
+    "groups": [
+      "395",
+      "440"
+    ],
+    "user_prefs": {
+
+    }
+  },
+  {
+    "_id": "axs1330@case.edu",
+    "name": "Adam Silver",
+    "token": null,
+    "groups": [
+      "395"
+    ],
+    "user_prefs": {
+
+    }
+  },
+  {
+    "_id": "gxy76@case.edu",
+    "name": "George Young",
+    "token": null,
+    "groups": [
+      "395",
+      "440",
+      "491"
+    ],
+    "user_prefs": {
+
+    }
+  }
+]

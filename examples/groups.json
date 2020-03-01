@@ -1,0 +1,85 @@
+[
+  {
+    "_id": "395",
+    "name": "EECS 395",
+    "members": [
+      "tcj16@case.edu",
+      "pgw8@case.edu",
+      "axs1330@case.edu",
+      "gxy76@case.edu"
+    ],
+    "meetings": [
+      {
+        "id": "ccqjee1mchh36b9l6pgj6b9k71gj0b9oc8s34b9i6lhmcohjcdi3adhlc8_20200219T164000Z",
+        "start": "2020-03-09T11:40:00-05:00",
+        "end": "2020-03-09T12:30:00-05:00",
+        "location": "White Building, 2111 Martin Luther King Jr Dr, Cleveland, OH 44106, USA"
+      },
+      {
+        "id": "64p34p1h74rmcbb1ccpjib9k64o6ab9oc5gj4b9m6tim6p1n6oqm6p3374_20200227T230000Z",
+        "start": "2020-02-27T18:00:00-05:00",
+        "end": "2020-02-27T19:20:30-05:00",
+        "location": "Thwing Center, 11111 Euclid Ave, Cleveland, OH 44106, USA"
+      }
+    ],
+    "group_prefs": {
+
+    }
+  },
+  {
+    "_id": "440",
+    "name": "EECS 440",
+    "members": [
+      "pgw8@case.edu",
+      "gxy76@case.edu"
+    ],
+    "meetings": [
+      {
+        "id": "chh62p9jchgmcbb56di62b9kcli64bb174qjgbb6cop6acpp6go36db2cg_20200219T164000Z",
+        "start": "2020-03-10T10:00:00-05:00",
+        "end": "2020-03-10T11:15:00-05:00",
+        "location": "White Building, 2111 Martin Luther King Jr Dr, Cleveland, OH 44106, USA"
+      }
+    ],
+    "group_prefs": {
+
+    }
+  },
+  {
+    "_id": "491",
+    "name": "EECS 491",
+    "members": [
+      "tcj16@case.edu",
+      "gxy76@case.edu"
+    ],
+    "meetings": [
+      {
+        "id": "6or32c1j6ko3eb9k6grm8b9k69hjab9pckp62b9n6kqm4e3368rm8c9gco_20200219T174500Z",
+        "start": "2020-03-11T12:45:00-05:00",
+        "end": "2020-03-11T14:00:00-05:00",
+        "location": "Olin Building, 2101 Martin Luther King Jr Dr, Cleveland, OH 44106, USA"
+      }
+    ],
+    "group_prefs": {
+
+    }
+  },
+  {
+    "_id": "531",
+    "name": "EECS 531",
+    "members": [
+      "tcj16@case.edu"
+    ],
+    "meetings": [
+      {
+        "id": "64q68cj471i3abb1cor3eb9k6kqm6bb2cks32b9n6pi66p1pclimce9o64_20200228T143000Z",
+        "start": "2020-03-11T15:20:00-05:00",
+        "end": "2020-03-11T16:35:00-05:00",
+        "location": "Olin Building, 2101 Martin Luther King Jr Dr, Cleveland, OH 44106, USA"
+      }
+    ],
+    "group_prefs": {
+
+    }
+  }
+]
