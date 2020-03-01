@@ -4,12 +4,12 @@
   "description": "Senior Design Project for EECS 395",
   "main": "index.js",
   "dependencies": {
-    "axios": "^0.19.2",
     "bootstrap-vue": "^2.4.2",
     "express": "^4.17.1",
     "googleapis": "^47.0.0",
     "jquery": "^1.12.4",
     "mongodb": "^3.5.3",
+    "promise": "^8.0.3",
     "vue": "^2.6.11",
     "vue-cli": "^2.9.6"
   },
