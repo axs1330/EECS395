@@ -11,7 +11,8 @@
     "mongodb": "^3.5.3",
     "promise": "^8.0.3",
     "vue": "^2.6.11",
-    "vue-cli": "^2.9.6"
+    "vue-cli": "^2.9.6",
+	"vuetify": "2.2.11"
   },
   "devDependencies": {},
   "scripts": {
