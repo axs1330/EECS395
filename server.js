@@ -46,7 +46,7 @@ app.get("/", (req, res) => {
   // TODO
   /*
   - button will direct user to authorization page
-  - user can go to /home directly if we have their access token
+  - check if we have user access token? if so, redirect to /home
   */
   res.redirect('/api/authorize');
 });
@@ -84,8 +84,18 @@ app.get("/auth", (req, res) => {
 });
 
 app.get("/home", (req, res) => {
-  // retrieving group user events
-  usersOfGroup('395')
+  allMemberEventsOfGroup('395')
+  .then(events => res.json(events))
+  .catch(err => res.status(500).send(err));
+});
+
+// TODO filter members
+/**
+ * Returns a promise that returns all events of all members in the group with the given ID.
+ * @param {string} groupId the ID of the group from which to retrieve events
+ */
+function allMemberEventsOfGroup(groupId) {
+  return usersOfGroup(groupId)
   .then(users => {
     return Promise.all(users.map(u => calendarsOfUser(u)))
     .then(calendarLists => {
@@ -95,15 +105,14 @@ app.get("/home", (req, res) => {
         .then(events => events.flat());
       }));
     })
-    .then(events => res.send(events))
-    .catch(err => res.status(500).send(err));
+    .catch(err => console.error(err));
   })
-  .catch(err => res.status(500).send(err));
-});
+  .catch(err => console.error(err));
+}
 
 /**
  * Returns a promise that returns all users in the group with the given ID.
- * @param {String} groupId the ID of the specified group
+ * @param {string} groupId the ID of the specified group
  */
 function usersOfGroup(groupId) {
   return groupsCursor.findOne({ _id: groupId })
@@ -156,7 +165,80 @@ function eventsFromCalendar(calendar, user) {
   .catch(err => console.error(err));
 }
 
-// TODO
-function addNewGroup() {
+/**
+ * Returns a promise that creates the given group.
+ * @param {*} group the group to be created
+ */
+function createGroup(group) {
+  return groupsCursor.insertOne(group)
+  .then(result => addGroupToUsers(group))
+  .catch(err => console.error(err));
+}
 
+/**
+ * Returns a promise that adds the given list of users to the given group.
+ * @param {string} groupId the ID of the group to which users will be added
+ * @param {string[]} userIds the list of IDs of the users to be added
+ */
+function addUsersToGroup(groupId, userIds) {
+  return groupsCursor.updateOne(
+    { _id: groupId },
+    { $addToSet: { members: { $each: userIds } } }
+  )
+  .then(result => groupsCursor.findOne({ _id: groupId }))
+  .then(updatedGroup => addGroupToUsers(updatedGroup))
+  .catch(err => console.error(err));
+}
+
+/**
+ * Returns a promise that updates the group lists of the users of the given group.
+ * @param {*} group the group to be added
+ */
+function addGroupToUsers(group) {
+  return usersCursor.updateMany(
+    { _id: { $in: group.members } },
+    { $addToSet: { groups: group._id } },
+  )
+  .catch(err => console.error(err));
+}
+
+/**
+ * Returns a promise that deletes the group with the given ID.
+ * @param {string} groupId the ID of the group to be deleted
+ */
+function deleteGroup(groupId) {
+  return groupsCursor.findOne({ _id: groupId })
+  .then(group => removeGroupFromUsers(group, group.members))
+  .then(result => groupsCursor.deleteOne({ _id: groupId }))
+  .catch(err => console.error(err));
+}
+
+/**
+ * Returns a promise that removes the given list of users from the given group.
+ * @param {string} groupId the ID of the group from which to remove users
+ * @param {string[]} userIds the list of IDs of the users to remove
+ */
+function removeUsersFromGroup(groupId, userIds) {
+  return groupsCursor.findOne({ _id: groupId })
+  .then(group => removeGroupFromUsers(group, userIds))
+  .then(result => {
+    return groupsCursor.updateOne(
+      { _id: groupId },
+      { $pullAll: { members: userIds } }
+    )
+  })
+  .catch(err => console.error(err));
+}
+
+/**
+ * Returns a promise that removes the given group from the given users.
+ * @param {*} group the group to be removed from the users
+ * @param {string[]} userIds the list of IDs of the users to update
+ */
+function removeGroupFromUsers(group, userIds) {
+  return usersCursor.updateMany(
+    { _id: { $in: userIds } },
+    { $pull: { groups: group._id } },
+  )
+  .catch(err => console.error(err));
 }
