@@ -1,16 +1,20 @@
 const fs = require('fs');
+const crypto = require('crypto')
 const Promise = require('promise');
 const Express = require('express');
+const BodyParser = require("body-parser");
+const MongoClient = require('mongodb').MongoClient;
+const ObjectId = require('mongodb').ObjectID;
 const {google} = require('googleapis');
-const MongoClient = require("mongodb").MongoClient;
-const ObjectId = require("mongodb").ObjectID;
+const MapsClient = require("@googlemaps/google-maps-services-js").Client;
 
 const port = process.env.PORT || 3000;
 
-const CONNECTION_URL = 'mongodb://root:admin@localhost:27017?authMechanism=DEFAULT&authSource=admin';
-const DATABASE_NAME = 'admin';
+const CONNECTION_URL = 'mongodb+srv://root:admin@campus-scheduler-gdb0r.mongodb.net/test?retryWrites=true&w=majority';
+const DATABASE_NAME = 'test';
 
-const CREDENTIALS_PATH = 'credentials.json';
+const CALENDAR_CREDENTIALS = 'credentials-calendar.json';
+const GEOCODING_API_KEY = 'api-key-geocoding.txt';
 const TOKEN_PATH = 'token.json';
 
 const SCOPES = [
@@ -21,7 +25,11 @@ const SCOPES = [
 
 var app = Express();
 var oAuth2Client;
+var geocodingKey;
+var usersCursor, groupsCursor;
+var currentUser;
 
+// TODO use dotenv instead of reading files
 app.listen(port, () => {
   // Connect to MongoDB server
   MongoClient.connect(CONNECTION_URL, { useNewUrlParser: true, useUnifiedTopology: true }, (err, client) => {
@@ -32,14 +40,21 @@ app.listen(port, () => {
     console.log(`Connected to db ${DATABASE_NAME}`);
   });
 
-  // Read credentials file for OAuth client
-  fs.readFile(CREDENTIALS_PATH, (err, content) => {
+  // Read credentials file for OAuth2 client
+  fs.readFile(CALENDAR_CREDENTIALS, (err, content) => {
     if (err) return console.error(err.message);
-    credentials = JSON.parse(content);
+    const credentials = JSON.parse(content);
     const {client_id, client_secret, redirect_uris } = credentials.web;
     oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0])
-    console.log(`Listening on port ${port}...`);
   });
+
+  // Read geocoding API key
+  fs.readFile(GEOCODING_API_KEY, (err, content) => {
+    if (err) return console.error(err.message);
+    geocodingKey = content;
+  });
+
+  console.log(`Listening on port ${port}...`);
 });
 
 app.get("/", (req, res) => {
@@ -55,7 +70,7 @@ app.get("/api/authorize", (req, res) => {
   const authUrl = oAuth2Client.generateAuthUrl({
     // TODO update calendar data while user is logged off using refresh token
     // access_type: 'offline',
-    // consent: 'prompt',
+    // prompt: 'consent',
     access_type: 'online',
     scope: SCOPES
   });
@@ -65,6 +80,9 @@ app.get("/api/authorize", (req, res) => {
 
 app.get("/auth", (req, res) => {
   const {code, scopes} = req.query;
+  if (!code) {
+    return res.status(500).send('Could not find user authorization code.')
+  }
   oAuth2Client.getToken(code, (err, token) => {
     if (err) return console.error(err);
     // TODO remove after debugging
@@ -72,10 +90,11 @@ app.get("/auth", (req, res) => {
     oAuth2Client.setCredentials(token);
     // Store token with corresponding user
     // TODO important to store refresh token when that is implemented
+    // TODO encrypt token
     google.oauth2("v2").userinfo.v2.me.get({auth: oAuth2Client}, (err, profile) => {
       if (err) return console.error(err);
-      const query = { _id: profile.data.email }
-      usersCursor.updateOne(query, { $set: { token: token } }, (err, result) => {
+      currentUser = profile.data.email;
+      usersCursor.updateOne({ _id: currentUser }, { $set: { token: token } }, (err, result) => {
         if (err) return res.status(500).send(err);
         res.redirect('/home');
       });
@@ -84,9 +103,54 @@ app.get("/auth", (req, res) => {
 });
 
 app.get("/home", (req, res) => {
-  allMemberEventsOfGroup('395')
-  .then(events => res.json(events))
+  createMeeting('395', '2020-03-06T14:00:00-05:00', '2020-03-06T16:00:00-05:00', '11038 Bellflower Rd, Cleveland, OH 44106')
+  // deleteMeeting('395', '<id>')
+  .then(result => groupsCursor.find().toArray())
+  // allMemberEventsOfGroup('395')
+  .then(events => res.send(events))
   .catch(err => res.status(500).send(err));
+});
+
+app.post("/create-group", (req, res) => {
+  const group = req.params;
+  createGroup(group)
+  .then(result => res.send(result))
+  .catch(err => res.status(500).send(err))
+});
+
+app.post("/add-users", (req, res) => {
+  const {groupId, userIds} = req.params;
+  addUsersToGroup(groupId, userIds)
+  .then(result => res.send(result))
+  .catch(err => res.status(500).send(err))
+});
+
+app.post("/delete-group", (req, res) => {
+  const groupId = req.params;
+  deleteGroup(groupId)
+  .then(result => res.send(result))
+  .catch(err => res.status(500).send(err))
+});
+
+app.post("/remove-users", (req, res) => {
+  const {groupId, userIds} = req.params;
+  removeUsersFromGroup(groupId, userIds)
+  .then(result => res.send(result))
+  .catch(err => res.status(500).send(err))
+});
+
+app.post("/create-meeting", (req, res) => {
+  const meeting = req.params;
+  createMeeting(meeting)
+  .then(result => res.send(result))
+  .catch(err => res.status(500).send(err))
+});
+
+app.post("/delete-meeting", (req, res) => {
+  const {groupId, meetingId} = req.params;
+  deleteMeeting(groupId, meetingId)
+  .then(result => res.send(result))
+  .catch(err => res.status(500).send(err))
 });
 
 // TODO filter members
@@ -101,7 +165,6 @@ function allMemberEventsOfGroup(groupId) {
     .then(calendarLists => {
       return Promise.all(calendarLists.map((calendars, i) => {
         return Promise.all(calendars.map(c => eventsFromCalendar(c, users[i])))
-        // TODO remove if we need to merge all events to be sorted
         .then(events => events.flat());
       }));
     })
@@ -240,5 +303,76 @@ function removeGroupFromUsers(group, userIds) {
     { _id: { $in: userIds } },
     { $pull: { groups: group._id } },
   )
+  .catch(err => console.error(err));
+}
+
+// TODO 
+// custom time zone
+// option for recurrence
+// attendees: group.members
+// option for reminders
+async function createMeeting(groupId, startTime, endTime, location) {
+  const group = await groupsCursor.findOne({ _id: groupId });
+  const eventTemplate = {
+    'summary': `${group.name} Meeting`,
+    'location': location,
+    'description': `Event automatically generated by Campus Scheduler.`,
+    'start': {
+      'dateTime': startTime,
+      'timeZone': 'America/New_York',
+    },
+    'end': {
+      'dateTime': endTime,
+      'timeZone': 'America/New_York',
+    },
+    'recurrence': [ ],
+    'attendees': [ ],
+    'reminders': {
+      'useDefault': true,
+    }
+  };
+
+  const user = await usersCursor.findOne({ _id: currentUser });
+  oAuth2Client.setCredentials(user.token);
+  const googleCalendar = google.calendar({version: 'v3', auth: oAuth2Client});
+
+  return googleCalendar.events.insert({
+    auth: oAuth2Client,
+    calendarId: 'primary',
+    resource: eventTemplate,
+  })
+  .then(event => {
+    console.log(event)
+    const meeting = {
+      id: event.data.id,
+      startTime: event.data.start.dateTime,
+      endTime: event.data.end.dateTime,
+      location: event.data.location
+    };
+    return groupsCursor.updateOne(
+      { _id: groupId },
+      { $push: { meetings: meeting } }
+    );
+  })
+  .catch(err => console.error('There was an error contacting the Calendar service: ' + err));
+}
+
+async function deleteMeeting(groupId, meetingId) {
+  const user = await usersCursor.findOne({ _id: currentUser });
+  oAuth2Client.setCredentials(user.token);
+  const googleCalendar = google.calendar({version: 'v3', auth: oAuth2Client});
+
+  // Remove meeting from database
+  groupsCursor.updateOne(
+    { _id: groupId },
+    { $pull: { meetings: { id: meetingId } } }
+  )
+  .catch(err => console.error(err));
+
+  // Remove meeting from Google calendar
+  return googleCalendar.events.delete({
+    calendarId: 'primary',
+    eventId: meetingId,
+  })
   .catch(err => console.error(err));
 }

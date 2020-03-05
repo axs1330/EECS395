@@ -4,6 +4,8 @@
   "description": "Senior Design Project for EECS 395",
   "main": "index.js",
   "dependencies": {
+    "@googlemaps/google-maps-services-js": "^2.1.2",
+    "body-parser": "^1.19.0",
     "bootstrap-vue": "^2.4.2",
     "express": "^4.17.1",
     "googleapis": "^47.0.0",
@@ -12,7 +14,7 @@
     "promise": "^8.0.3",
     "vue": "^2.6.11",
     "vue-cli": "^2.9.6",
-	"vuetify": "2.2.11"
+    "vuetify": "2.2.11"
   },
   "devDependencies": {},
   "scripts": {
