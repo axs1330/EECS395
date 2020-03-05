@@ -112,42 +112,42 @@ app.get("/home", (req, res) => {
 });
 
 app.post("/create-group", (req, res) => {
-  const group = req.params;
+  const group = req.body;
   createGroup(group)
   .then(result => res.send(result))
   .catch(err => res.status(500).send(err))
 });
 
 app.post("/add-users", (req, res) => {
-  const {groupId, userIds} = req.params;
+  const {groupId, userIds} = req.body;
   addUsersToGroup(groupId, userIds)
   .then(result => res.send(result))
   .catch(err => res.status(500).send(err))
 });
 
 app.post("/delete-group", (req, res) => {
-  const groupId = req.params;
+  const groupId = req.body;
   deleteGroup(groupId)
   .then(result => res.send(result))
   .catch(err => res.status(500).send(err))
 });
 
 app.post("/remove-users", (req, res) => {
-  const {groupId, userIds} = req.params;
+  const {groupId, userIds} = req.body;
   removeUsersFromGroup(groupId, userIds)
   .then(result => res.send(result))
   .catch(err => res.status(500).send(err))
 });
 
 app.post("/create-meeting", (req, res) => {
-  const meeting = req.params;
-  createMeeting(meeting)
-  .then(result => res.send(result))
-  .catch(err => res.status(500).send(err))
+  const meeting = req.body;
+  // createMeeting(meeting)
+  // .then(result => res.send(result))
+  // .catch(err => res.status(500).send(err))
 });
 
 app.post("/delete-meeting", (req, res) => {
-  const {groupId, meetingId} = req.params;
+  const {groupId, meetingId} = req.body;
   deleteMeeting(groupId, meetingId)
   .then(result => res.send(result))
   .catch(err => res.status(500).send(err))
