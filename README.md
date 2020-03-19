@@ -4,6 +4,6 @@ Senior Design Project for EECS 395
 ## FRONTEND
 
 ## BACKEND
-- [x] Scheduling code
+- [ ] Scheduling code
 
 ##
