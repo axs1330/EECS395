@@ -5,7 +5,7 @@ Senior Design Project for EECS 395
 
 ## BACKEND
 - [ ] Generalization of naive scheduler
-- [ ] Consider factors
+- [ ] Weight various factors
 ## Database
 
 ## Integration
