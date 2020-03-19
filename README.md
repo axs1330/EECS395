@@ -4,8 +4,8 @@ Senior Design Project for EECS 395
 ## FRONTEND
 
 ## BACKEND
-- [ ] Scheduling code
-
+- [ ] Generalization of naive scheduler
+- [ ] Consider factors
 ## Database
 
 ## Integration
