@@ -6,4 +6,6 @@ Senior Design Project for EECS 395
 ## BACKEND
 - [ ] Scheduling code
 
-##
+## Database
+
+## Integration
