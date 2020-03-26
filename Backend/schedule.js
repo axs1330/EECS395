@@ -58,7 +58,7 @@ function naiveSchedule(schedules, day, start, end, event_length, inteval) {
                 if(getEventDate(current_event) != day){
                     continue
                 }
-                if(time_diff(trial_time_start, current_event_start) < 0){//our event starts earlier than scheduled event
+                /* if(time_diff(trial_time_start, current_event_start) < 0){//our event starts earlier than scheduled event
                     if(time_diff(trial_time_end, current_event_start) > 0){//our event also ends later than schduled event's start
                         console.log("conflict event info:")
                         console.log("Start time: "+ current_event_start)
@@ -75,14 +75,32 @@ function naiveSchedule(schedules, day, start, end, event_length, inteval) {
                         console.log("End time: " + current_event_end)
                         conflict_flag = true;
                     }
+                } */
+                if(earlier(trial_time_start, current_event_start)){//our event starts earlier than scheduled event
+                    if(!earlier(trial_time_end, current_event_start)){//our event also ends later than schduled event's start
+                        console.log("conflict event info:")
+                        console.log("Start time: "+ current_event_start)
+                        console.log("End time: " + current_event_end)
+                        conflict_flag = true;
+                    }
+                }
+                if(!earlier(trial_time_start, current_event_start)){//out event starts later than schuduled event
+                    if(earlier(trial_time_start, current_event_end)){//our event event starts later than scheduled end
+                        //console.log("end conflict: " + current_event_end)
+                        //console.log(time_diff(trial_time_end, current_event_end))
+                        console.log("conflict event info:")
+                        console.log("Start time: "+ current_event_start)
+                        console.log("End time: " + current_event_end)
+                        conflict_flag = true;
+                    }
                 }
                 if(conflict_flag){
                     break;
                 }
-                if(earlier(closest_previous, current_event_start)){
+                if(earlier(closest_previous, current_event_end) && earlier(current_event_end, trial_time_start)){
                     closest_previous = current_event_start
                 }
-                if(earlier(current_event_end, closest_after)){
+                if(earlier(current_event_start, closest_after) && earlier(trial_time_end, current_event_start)){
                     closest_after = current_event_end
                 }
             }
@@ -92,7 +110,7 @@ function naiveSchedule(schedules, day, start, end, event_length, inteval) {
         if(conflict_flag){
             console.log("Conflict Exists :(")
         }else{
-            slot_utility = -1*(time_diff(trial_time_start, closest_previous) + time_diff(closest_after, trial_time_end))
+            slot_utility = -1 * (time_diff(trial_time_start, closest_previous) + time_diff(closest_after, trial_time_end))
             if(slot_utility > best_utility){
                 best_utility = slot_utility
                 best_start_time = trial_time_start
@@ -104,7 +122,7 @@ function naiveSchedule(schedules, day, start, end, event_length, inteval) {
         }
         trial_time_start = time_add(trial_time_start, inteval)
     }
-    return(best_start_time)
+    return([best_start_time, time_add(best_start_time, event_length)])
 }
 
 function getStartTime(event){
