@@ -40,8 +40,16 @@ function naiveSchedule(schedules, day, start, end, event_length, inteval) {
     Inteval: Search inteval for the for loop
     TODO: currently not considering start and end, 
     */
+
+    /*
+    configs
+    */
+    let time_eval_mode = 'squared'
+
+
+
     let best_start_time = "00:00:00"
-    let best_utility = -10000000
+    let best_utility = -10000000000
     let trial_time_start = "00:00:00"
     while(time_add(trial_time_start, event_length) != false){
         let trial_time_end = time_add(trial_time_start, event_length)
@@ -110,7 +118,13 @@ function naiveSchedule(schedules, day, start, end, event_length, inteval) {
         if(conflict_flag){
             console.log("Conflict Exists :(")
         }else{
-            slot_utility = -1 * (time_diff(trial_time_start, closest_previous) + time_diff(closest_after, trial_time_end))
+            let slot_utility = 0
+            if(time_eval_mode == 'squared'){
+                slot_utility += -1 * (time_diff(trial_time_start, closest_previous) * time_diff(trial_time_start, closest_previous));
+                slot_utility += -1 * (time_diff(closest_after, trial_time_end) * time_diff(closest_after, trial_time_end));
+            }else{
+                slot_utility = -1 * (time_diff(trial_time_start, closest_previous) + time_diff(closest_after, trial_time_end))
+            }
             if(slot_utility > best_utility){
                 best_utility = slot_utility
                 best_start_time = trial_time_start
