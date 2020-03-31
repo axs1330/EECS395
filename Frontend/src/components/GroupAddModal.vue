@@ -7,13 +7,14 @@
       </v-form>
       <v-card-actions>
         <v-btn color="blue darken-1" text v-on:click="$emit('close-modal')">Close</v-btn>
-        <v-btn color="blue darken-1" text @click="dialog = false">Save</v-btn>
+        <v-btn color="blue darken-1" text @click="createGroup">Create Group</v-btn>
       </v-card-actions>
     </v-card>
   </div>
 </template>
 
 <script>
+import {HTTP} from "../http-common.js";
 export default {
   name: "GroupAddModal",
   data() {
@@ -27,6 +28,16 @@ export default {
         }
       }
     };
+  },
+  createGroup() {
+    HTTP.post('', {
+    })
+    .then(response => {
+    })
+    .catch(error => {
+      console.log(error)
+    })
+    $emit('close-modal');
   }
 };
 </script>

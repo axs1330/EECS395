@@ -28,6 +28,7 @@
 
 <script>
 import MeetingAddModal from "./MeetingAddModal.vue";
+import {HTTP} from "../http-common.js";
 export default {
   name: "MainView",
   components: {
@@ -36,8 +37,21 @@ export default {
   props: ["group"],
   data() {
     return {
+      members: [],
+      meetings: [],
       meeting: 0
     };
+  },
+  mounted(){
+    HTTP.post('', {
+      groupId: this.group.id
+    })
+    .then(response => {
+      this.members = response.data.members
+    })
+    .catch(error => {
+      console.log(error)
+    })
   }
 };
 </script>
