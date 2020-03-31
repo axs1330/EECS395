@@ -10,8 +10,10 @@
     "express": "^4.17.1",
     "googleapis": "^47.0.0",
     "jquery": "^1.12.4",
+    "mocha": "^7.1.1",
     "mongodb": "^3.5.3",
     "promise": "^8.0.3",
+    "unit.js": "^2.1.1",
     "vue": "^2.6.11",
     "vue-cli": "^2.9.6",
     "vuetify": "2.2.11"
