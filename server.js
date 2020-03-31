@@ -150,6 +150,15 @@ app.post("/delete-meeting", (req, res) => {
   .catch(err => res.status(500).send(err))
 });
 
+/**
+ * Returns a promise that returns an array containing all groups of the current user.
+ */
+function groupsOfCurrentUser() {
+  return usersCursor.findOne({ _id: currentUser })
+  .then(user => user.groups)
+  .catch(err => console.error(err));
+}
+
 // TODO filter members
 /**
  * Returns a promise that returns all events of all members in the group with the given ID.
