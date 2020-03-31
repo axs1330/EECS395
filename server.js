@@ -103,10 +103,7 @@ app.get("/auth", (req, res) => {
 });
 
 app.get("/home", (req, res) => {
-  createMeeting('395', '2020-03-06T14:00:00-05:00', '2020-03-06T16:00:00-05:00', '11038 Bellflower Rd, Cleveland, OH 44106')
-  // deleteMeeting('395', '<id>')
-  .then(result => groupsCursor.find().toArray())
-  // allMemberEventsOfGroup('395')
+  allMemberEventsOfGroup('395')
   .then(events => res.send(events))
   .catch(err => res.status(500).send(err));
 });
@@ -164,7 +161,7 @@ function allMemberEventsOfGroup(groupId) {
     return Promise.all(users.map(u => calendarsOfUser(u)))
     .then(calendarLists => {
       return Promise.all(calendarLists.map((calendars, i) => {
-        return Promise.all(calendars.map(c => eventsFromCalendar(c, users[i])))
+        return Promise.all(calendars.map(c => eventsFromCalendar(c, users[i], 28)))
         .then(events => events.flat());
       }));
     })
@@ -196,9 +193,15 @@ function calendarsOfUser(user) {
   oAuth2Client.setCredentials(token);
   const googleCalendar = google.calendar({version: 'v3', auth: oAuth2Client});
 
-  // TODO calendar filtering from user_prefs
+  // Filter according to user preferences, do not filter if that list is empty
+  const calendarNames = user.user_prefs.calendars;
+  let filterFunction = c => true;
+  if (calendarNames.length) {
+    filterFunction = c => calendarNames.includes(c.summary);
+  }
+
   return googleCalendar.calendarList.list()
-  .then(calendar => calendar.data.items)
+  .then(calendar => calendar.data.items.filter(filterFunction))
   .catch(err => console.error(err));
 }
 
@@ -207,7 +210,7 @@ function calendarsOfUser(user) {
  * @param {*} calendar the Google calendar from which to retrieve events
  * @param {*} user the user whose token is to be used
  */
-function eventsFromCalendar(calendar, user) {
+function eventsFromCalendar(calendar, user, days) {
   const token = user.token;
   if (!token) {
     console.error(`Could not find token for user ${user._id}`);
@@ -216,15 +219,16 @@ function eventsFromCalendar(calendar, user) {
   oAuth2Client.setCredentials(token);
   const googleCalendar = google.calendar({version: 'v3', auth: oAuth2Client});
 
+  const now = new Date();
+  const end = new Date(now.getTime() + (1000 * 60 * 60 * 24 * days));
   return googleCalendar.events.list({
     calendarId: calendar.id,
-    timeMin: (new Date()).toISOString(),
-    // TODO use timeMax instead of maxResults
-    maxResults: 5,
+    timeMin: now.toISOString(),
+    timeMax: end.toISOString(),
     singleEvents: true,
     orderBy: 'startTime'
   })
-  .then(eventList => eventList.data.items)
+  .then(eventList => eventList.data.items.filter(e => e.start.dateTime)) // filter out all-day events
   .catch(err => console.error(err));
 }
 
