@@ -3,7 +3,8 @@
     <v-card>
       <v-card-title class="headline">Create New Group</v-card-title>
       <v-form>
-        <v-text-field :rules="[rules.required, rules.email]" label="email address"></v-text-field>
+        <v-text-field label="Group Name" placeholder="Enter Name" v-model="groupName"></v-text-field>
+        <v-combobox :rules="[rules.required, rules.email]" label="email address" chips multiple v-model="members"></v-combobox>
       </v-form>
       <v-card-actions>
         <v-btn color="blue darken-1" text v-on:click="$emit('close-modal')">Close</v-btn>
@@ -19,6 +20,8 @@ export default {
   name: "GroupAddModal",
   data() {
     return {
+      groupName: "",
+      members: [],
       rules: {
         required: value => !!value || "Required.",
         counter: value => value.length <= 20 || "Max 20 characters",
@@ -29,15 +32,32 @@ export default {
       }
     };
   },
-  createGroup() {
-    HTTP.post('', {
-    })
-    .then(response => {
-    })
-    .catch(error => {
-      console.log(error)
-    })
-    $emit('close-modal');
+  methods: {
+    cleanupModal() {
+      this.members = [];
+      this.name= "";
+      this.$emit('close-modal');
+      this.$emit('refresh-groups');
+      //TODO: create event to refresh list of groups
+    },
+    createGroup() {
+      const group= {
+        _id: "test",
+        name: this.groupName,
+        members: this.members
+      }
+
+      HTTP.post('/create-group', {
+        group
+      })
+      .then(response => {
+        response
+      })
+      .catch(error => {
+        console.log(error)
+      })
+      this.cleanupModal();
+    }
   }
 };
 </script>

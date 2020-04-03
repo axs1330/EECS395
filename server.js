@@ -29,6 +29,12 @@ var geocodingKey;
 var usersCursor, groupsCursor;
 var currentUser;
 
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "http://localhost:8080");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
 // TODO use dotenv instead of reading files
 app.listen(port, () => {
   // Connect to MongoDB server
@@ -56,6 +62,9 @@ app.listen(port, () => {
 
   console.log(`Listening on port ${port}...`);
 });
+
+
+
 
 app.get("/", (req, res) => {
   // TODO
@@ -109,6 +118,7 @@ app.get("/home", (req, res) => {
 });
 
 app.post("/create-group", (req, res) => {
+  console.log(req.body);
   const group = req.body;
   createGroup(group)
   .then(result => res.send(result))

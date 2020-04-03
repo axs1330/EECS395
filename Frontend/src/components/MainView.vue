@@ -43,11 +43,12 @@ export default {
     };
   },
   mounted(){
-    HTTP.post('', {
+    HTTP.post('/home', {
       groupId: this.group.id
     })
     .then(response => {
       this.members = response.data.members
+      this.meetings = response.data.meetings
     })
     .catch(error => {
       console.log(error)
