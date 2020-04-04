@@ -15,7 +15,6 @@ const DATABASE_NAME = 'test';
 
 const CALENDAR_CREDENTIALS = 'credentials-calendar.json';
 const GEOCODING_API_KEY = 'api-key-geocoding.txt';
-const TOKEN_PATH = 'token.json';
 
 const SCOPES = [
   'https://www.googleapis.com/auth/calendar',
@@ -27,8 +26,12 @@ var app = Express();
 var oAuth2Client;
 var geocodingKey;
 var usersCursor, groupsCursor;
-var currentUser;
+// var currentUser;
+// TODO change this to your own email for convenience, remove after finished developing and uncomment line above
+var currentUser = 'tcj16@case.edu';
 
+app.use(BodyParser.json());
+app.use(BodyParser.urlencoded({ extended: true }));
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "http://localhost:8080");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -62,9 +65,6 @@ app.listen(port, () => {
 
   console.log(`Listening on port ${port}...`);
 });
-
-
-
 
 app.get("/", (req, res) => {
   // TODO
@@ -111,14 +111,26 @@ app.get("/auth", (req, res) => {
   });
 });
 
+// TODO delete after finished debugging server
 app.get("/home", (req, res) => {
-  allMemberEventsOfGroup('395')
-  .then(events => res.send(events))
+  groupsOfCurrentUser()
+  .then(events => {
+    console.log(events)
+    res.send(events);
+  })
+  .catch(err => res.status(500).send(err));
+});
+
+app.post("/home", (req, res) => {
+  groupsOfCurrentUser()
+  .then(events => {
+    console.log(events)
+    res.send(events);
+  })
   .catch(err => res.status(500).send(err));
 });
 
 app.post("/create-group", (req, res) => {
-  console.log(req.body);
   const group = req.body;
   createGroup(group)
   .then(result => res.send(result))
@@ -148,9 +160,9 @@ app.post("/remove-users", (req, res) => {
 
 app.post("/create-meeting", (req, res) => {
   const meeting = req.body;
-  // createMeeting(meeting)
-  // .then(result => res.send(result))
-  // .catch(err => res.status(500).send(err))
+  createMeeting(meeting)
+  .then(result => res.send(result))
+  .catch(err => res.status(500).send(err))
 });
 
 app.post("/delete-meeting", (req, res) => {

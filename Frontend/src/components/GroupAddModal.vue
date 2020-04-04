@@ -41,14 +41,13 @@ export default {
       //TODO: create event to refresh list of groups
     },
     createGroup() {
-      const group= {
-        _id: "test",
-        name: this.groupName,
-        members: this.members
-      }
 
       HTTP.post('/create-group', {
-        group
+        _id: "test",
+        name: this.groupName,
+        members: this.members,
+        meetings: [],
+        group_prefs: {}
       })
       .then(response => {
         response

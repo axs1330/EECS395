@@ -58,7 +58,7 @@ export default {
   },
 
   mounted(){
-    HTTP.post('')
+    HTTP.post('/home')
         .then(response => {
           this.groups = response.data.groups
         })
@@ -67,10 +67,7 @@ export default {
             this.errored = true
         })
         .finally(() => this.loading = false)
-
   }
-
-
 };
 </script>
 <style>
