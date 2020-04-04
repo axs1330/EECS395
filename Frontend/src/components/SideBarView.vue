@@ -14,9 +14,19 @@
             <GroupAddModal v-on:close-modal="dialog = false"></GroupAddModal>
           </v-dialog>
         </v-card-subtitle>
-        <v-tab v-for="(group, i) in groups" v-bind:key="i">
-          <p>{{group.name}}</p>
-        </v-tab>
+        <section v-if="errored">
+          <p>We encountered an error, please reload the page</p>
+        </section>
+        <section v-else>
+          <div v-if="loading">
+            <v-progress-circular color="grey lighten-1" indeterminate> </v-progress-circular>
+          </div>
+          <div v-else>
+            <v-tab v-for="(group, i) in groups" v-bind:key="i">
+              <p>{{group.name}}</p>
+            </v-tab>
+          </div>
+        </section>
       </v-card>
       <v-tabs-items v-model="group" vertical>
         <v-tab-item v-for="(group, i) in groups" v-bind:key="i">
@@ -30,6 +40,7 @@
 <script>
 import MainView from "./MainView.vue";
 import GroupAddModal from "./GroupAddModal.vue";
+import {HTTP} from "../http-common.js";
 export default {
   name: "SideBarView",
   components: {
@@ -39,20 +50,23 @@ export default {
   data() {
     return {
       group: 0,
-      groups: [
-        {
-          name: "EECS 395",
-          members: ["member 1", "member 2", "member 3"],
-          meetings: ["395 meeting 1", "395 meeting 2"]
-        },
-        {
-          name: "EECS 393",
-          members: ["member A", "member B", "member C"],
-          meetings: ["393 meeting 1", "393 meeting 2"]
-        }
-      ],
+      errored: false,
+      loading: true,
+      groups: [],
       dialog: false
     };
+  },
+
+  mounted(){
+    HTTP.post('/home')
+        .then(response => {
+          this.groups = response.data.groups
+        })
+        .catch(error => {
+            console.log(error)
+            this.errored = true
+        })
+        .finally(() => this.loading = false)
   }
 };
 </script>
