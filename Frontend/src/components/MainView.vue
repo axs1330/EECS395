@@ -1,15 +1,11 @@
 <template>
-  <v-card height="100%" class="flexcard">
+  <v-card height="100%" class="fill-height">
     <v-card-title>
       <p>{{group.name}}</p>
     </v-card-title>
-    <v-container>
-      <v-row>
-        <v-col v-for="(member, i) in group.members" v-bind:key="i">
+        <v-chip v-for="(member, i) in group.members" v-bind:key="i">
           <p>{{member}}</p>
-        </v-col>
-      </v-row>
-    </v-container>
+        </v-chip>
     <v-list dense>
       <v-list-item-group v-model="meeting" color="primary">
         <v-list-item v-for="(meeting, i) in group.meetings" v-bind:key="i">

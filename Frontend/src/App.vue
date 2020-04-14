@@ -1,13 +1,15 @@
 <template>
   <v-app>
     <v-app-bar app color="blue darken-4">CampusScheduler [icon] [account related icons on the right]</v-app-bar>
-    <v-container fluid>
-      <v-row dense>
-        <v-col>
+    <v-content>
+    <v-container fluid class="fill-height">
+      <v-row class="fill-height">
+        <v-col fill-height>
           <SideBarView/>
         </v-col>
       </v-row>
     </v-container>
+    </v-content>
   </v-app>
 </template>
 
@@ -29,6 +31,10 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
 }
+
+.container #app .row .col{
+  height: 100%;
+}
+
 </style>

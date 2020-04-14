@@ -1,7 +1,7 @@
 <template>
-  <div>
-    <v-tabs vertical v-model="group" dark>
-      <v-card height="100%" class="flexcard" dark>
+  <div class="flexcard">
+    <v-tabs vertical v-model="group" dark class="fill-height">
+      <v-card dark fill-height>
         <v-card-title>
           <p>Groups</p>
         </v-card-title>
@@ -28,8 +28,8 @@
           </div>
         </section>
       </v-card>
-      <v-tabs-items v-model="group" vertical>
-        <v-tab-item v-for="(group, i) in groups" v-bind:key="i">
+      <v-tabs-items v-model="group" vertical class="fill-height">
+        <v-tab-item v-for="(group, i) in groups" v-bind:key="i" class="fill-height">
           <MainView v-bind:group="group"/>
         </v-tab-item>
       </v-tabs-items>
@@ -60,7 +60,7 @@ export default {
   mounted(){
     HTTP.post('/home')
         .then(response => {
-          this.groups = response.data.groups
+          this.groups = response.data
         })
         .catch(error => {
             console.log(error)
@@ -74,6 +74,12 @@ export default {
 .flexcard {
   display: flex;
   flex-direction: column;
+  height: 100%;
+}
+
+.height {
+  flex: 1 1 auto;
+  height: 100%;
 }
 </style>
 

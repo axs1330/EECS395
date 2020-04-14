@@ -28,7 +28,7 @@ var geocodingKey;
 var usersCursor, groupsCursor;
 // var currentUser;
 // TODO change this to your own email for convenience, remove after finished developing and uncomment line above
-var currentUser = 'tcj16@case.edu';
+var currentUser = 'pgw8@case.edu';
 
 app.use(BodyParser.json());
 app.use(BodyParser.urlencoded({ extended: true }));
