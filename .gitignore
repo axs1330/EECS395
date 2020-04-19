@@ -1,5 +1,7 @@
 .gitignore
 
+.idea/
+
 node_modules/
 
 api-key-geocoding.txt
