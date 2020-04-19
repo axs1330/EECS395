@@ -19,7 +19,8 @@ const GEOCODING_API_KEY = 'api-key-geocoding.txt';
 const SCOPES = [
   'https://www.googleapis.com/auth/calendar',
   'https://www.googleapis.com/auth/calendar.events',
-  'https://www.googleapis.com/auth/userinfo.email'
+  'https://www.googleapis.com/auth/userinfo.email',
+  'https://www.googleapis.com/auth/userinfo.profile'
 ];
 
 var app = Express();
@@ -102,8 +103,7 @@ app.get("/auth", (req, res) => {
     // TODO encrypt token
     google.oauth2("v2").userinfo.v2.me.get({auth: oAuth2Client}, (err, profile) => {
       if (err) return console.error(err);
-      currentUser = profile.data.email;
-      usersCursor.updateOne({ _id: currentUser }, { $set: { token: token } }, (err, result) => {
+      createOrUpdateCurrentUser(profile.data, token, (err, result) => {
         if (err) return res.status(500).send(err);
         res.redirect('/home');
       });
@@ -111,13 +111,43 @@ app.get("/auth", (req, res) => {
   });
 });
 
+function createOrUpdateCurrentUser(profileData, token, callback) {
+  currentUser = profileData.email;
+  currentUser = 'testUser';
+  return usersCursor.findOne({ _id: currentUser })
+  .then(user => {
+    if (user) {
+      return usersCursor.updateOne({ _id: currentUser }, { $set: { token: token } });
+    } else {
+      return usersCursor.insertOne({
+        _id: currentUser,
+        name: profileData.name,
+        groups: [],
+        user_prefs: {}
+      });
+    }
+  })
+  .then(result => callback(null, result))
+  .catch(err => callback(err, null));
+}
+
+function deleteUser(userId) {
+  // Remove user from associated groups
+  groupsCursor.updateMany(
+    { members: userId },
+    { $pull: { members: userId } }
+  )
+  .catch(err => console.error(err));
+
+  // Delete user
+  return usersCursor.deleteOne({ _id: userId })
+  .catch(err => console.error(err));
+}
+
 // TODO delete after finished debugging server
 app.get("/home", (req, res) => {
   groupsOfCurrentUser()
-  .then(events => {
-    console.log(events)
-    res.send(events);
-  })
+  .then(events => res.send(events))
   .catch(err => res.status(500).send(err));
 });
 
