@@ -145,79 +145,6 @@ function deleteUser(userId) {
   .catch(err => console.error(err));
 }
 
-// TODO delete after finished debugging server
-app.get("/home", (req, res) => {
-  const meetingParams = {
-    groupId: '395',
-    endDate: (new Date()).toISOString().split('T')[0], // today
-    startTime: '12:00:00',
-    endTime: '14:00:00',
-    duration: '00:30:00',
-    interval: '00:05:00',
-  }
-  scheduleMeeting(meetingParams)
-  .then(meetings => res.send(meetings))
-  .catch(err => res.status(500).send(err));
-});
-
-app.post("/home", (req, res) => {
-  groupsOfCurrentUser()
-  .then(events => {
-    console.log(events)
-    res.send(events);
-  })
-  .catch(err => res.status(500).send(err));
-});
-
-app.post("/create-group", (req, res) => {
-  const group = req.body;
-  createGroup(group)
-  .then(result => res.send(result))
-  .catch(err => res.status(500).send(err))
-});
-
-app.post("/add-users", (req, res) => {
-  const {groupId, userIds} = req.body;
-  addUsersToGroup(groupId, userIds)
-  .then(result => res.send(result))
-  .catch(err => res.status(500).send(err))
-});
-
-app.post("/delete-group", (req, res) => {
-  const groupId = req.body;
-  deleteGroup(groupId)
-  .then(result => res.send(result))
-  .catch(err => res.status(500).send(err))
-});
-
-app.post("/remove-users", (req, res) => {
-  const {groupId, userIds} = req.body;
-  removeUsersFromGroup(groupId, userIds)
-  .then(result => res.send(result))
-  .catch(err => res.status(500).send(err))
-});
-
-app.post("/schedule-meeting", (req, res) => {
-  const {groupId, rangeEnd, duration} = req.body;
-  scheduleMeeting(groupId, duration)
-  .then(result => res.send(result))
-  .catch(err => res.status(500).send(err))
-});
-
-app.post("/create-meeting", (req, res) => {
-  const meeting = req.body;
-  createMeeting(meeting)
-  .then(result => res.send(result))
-  .catch(err => res.status(500).send(err))
-});
-
-app.post("/delete-meeting", (req, res) => {
-  const {groupId, meetingId} = req.body;
-  deleteMeeting(groupId, meetingId)
-  .then(result => res.send(result))
-  .catch(err => res.status(500).send(err))
-});
-
 /**
  * Returns a promise that returns an array containing all groups of the current user.
  */
@@ -396,21 +323,23 @@ function removeGroupFromUsers(group, userIds) {
 // TODO update when scheduler considers date range
 /**
  * Returns a promise that returns a list of possible meeting times from the scheduler.
+ * @param {string} groupId the ID of the group for this meeting
  * @param {*} meetingParams the parameters of the meeting to be scheduled
  */
-function scheduleMeeting(meetingParams) {
-  return allMemberEventsOfGroup(meetingParams.groupId)
+function scheduleMeeting(groupId, meetingParams) {
+  console.log(groupId)
+  return allMemberEventsOfGroup(groupId)
   .then(memberEvents => {
     return new Promise((resolve, reject) => {
       resolve(
-        scheduler.naiveSchedule(memberEvents,
+        scheduler.naiveSchedule(
+          memberEvents,
           meetingParams.endDate,
           meetingParams.startTime,
           meetingParams.endTime,
           meetingParams.duration,
-          meetingParams.interval
-        )
-      )
+          meetingParams.interval)
+      );
     });
   })
   .catch(err => console.error(err));
@@ -486,3 +415,77 @@ async function deleteMeeting(groupId, meetingId) {
   })
   .catch(err => console.error(err));
 }
+
+////////// POST ROUTES ////////////////////////////////////////////////////////////////////////////
+
+// TODO delete after finished debugging server
+app.get("/home", (req, res) => {
+  const meetingParams = {
+    endDate: '2020-04-21',
+    startTime: '12:00:00',
+    endTime: '14:00:00',
+    duration: '00:30:00',
+    interval: '00:05:00',
+  };
+  scheduleMeeting('395', meetingParams)
+  .then(meetings => res.send(meetings))
+  .catch(err => res.status(500).send(err));
+});
+
+app.post("/home", (req, res) => {
+  groupsOfCurrentUser()
+  .then(events => {
+    console.log(events)
+    res.send(events);
+  })
+  .catch(err => res.status(500).send(err));
+});
+
+app.post("/create-group", (req, res) => {
+  const group = req.body;
+  createGroup(group)
+  .then(result => res.send(result))
+  .catch(err => res.status(500).send(err))
+});
+
+app.post("/delete-group", (req, res) => {
+  const groupId = req.body;
+  deleteGroup(groupId)
+  .then(result => res.send(result))
+  .catch(err => res.status(500).send(err))
+});
+
+app.post("/add-members", (req, res) => {
+  const {groupId, userIds} = req.body;
+  addUsersToGroup(groupId, userIds)
+  .then(result => res.send(result))
+  .catch(err => res.status(500).send(err))
+});
+
+app.post("/remove-members", (req, res) => {
+  const {groupId, userIds} = req.body;
+  removeUsersFromGroup(groupId, userIds)
+  .then(result => res.send(result))
+  .catch(err => res.status(500).send(err))
+});
+
+app.post("/schedule-meeting", (req, res) => {
+  const meetingParams = req.body;
+  scheduleMeeting(meetingParams)
+  .then(result => res.send(result))
+  .catch(err => res.status(500).send(err))
+});
+
+app.post("/create-meeting", (req, res) => {
+  const meeting = req.body;
+  createMeeting(meeting)
+  .then(result => res.send(result))
+  .catch(err => res.status(500).send(err))
+});
+
+app.post("/delete-meeting", (req, res) => {
+  const {groupId, meetingId} = req.body;
+  deleteMeeting(groupId, meetingId)
+  .then(result => res.send(result))
+  .catch(err => res.status(500).send(err))
+});
