@@ -9,12 +9,12 @@ console.log(student[0].start.dateTime);
 let month_days = [31,29,31,30,31,31,30,31,30,31] 
 console.log(getStartTime(student[0].start.dateTime)) */
 
-let master_schedules = parseScheduleFiles(scheduleFileList)
-console.log(getStartTime(master_schedules[0][0]))
-console.log(getEndTime(master_schedules[0][0]))
-console.log(getEventDate(master_schedules[0][0]))
+// let master_schedules = parseScheduleFiles(scheduleFileList)
+// console.log(getStartTime(master_schedules[0][0]))
+// console.log(getEndTime(master_schedules[0][0]))
+// console.log(getEventDate(master_schedules[0][0]))
 
-console.log(naiveSchedule(master_schedules, '2020-02-19', '12:00:00', '14:00:00', '00:40:00', '00:05:00'))
+// console.log(naiveSchedule(master_schedules, '2020-02-19', '12:00:00', '14:00:00', '00:40:00', '00:05:00'))
 
 function parseScheduleFiles(scheduleFileList){
     let master_schedules = []
@@ -232,3 +232,5 @@ function time_add(time, increment){
     finalTime = finalTime + totalSecond;
    return finalTime
 }
+
+module.exports.naiveSchedule = naiveSchedule;

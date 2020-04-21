@@ -8,6 +8,8 @@ const ObjectId = require('mongodb').ObjectID;
 const {google} = require('googleapis');
 const MapsClient = require("@googlemaps/google-maps-services-js").Client;
 
+const scheduler = require('./Backend/schedule.js');
+
 const port = process.env.PORT || 3000;
 
 const CONNECTION_URL = 'mongodb+srv://root:admin@campus-scheduler-gdb0r.mongodb.net/test?retryWrites=true&w=majority';
@@ -29,7 +31,7 @@ var geocodingKey;
 var usersCursor, groupsCursor;
 // var currentUser;
 // TODO change this to your own email for convenience, remove after finished developing and uncomment line above
-var currentUser = 'pgw8@case.edu';
+var currentUser = 'tcj16@case.edu';
 
 app.use(BodyParser.json());
 app.use(BodyParser.urlencoded({ extended: true }));
@@ -113,7 +115,6 @@ app.get("/auth", (req, res) => {
 
 function createOrUpdateCurrentUser(profileData, token, callback) {
   currentUser = profileData.email;
-  currentUser = 'testUser';
   return usersCursor.findOne({ _id: currentUser })
   .then(user => {
     if (user) {
@@ -146,8 +147,8 @@ function deleteUser(userId) {
 
 // TODO delete after finished debugging server
 app.get("/home", (req, res) => {
-  groupsOfCurrentUser()
-  .then(events => res.send(events))
+  scheduleMeeting('395', '00:30:00')
+  .then(meetings => res.send(meetings))
   .catch(err => res.status(500).send(err));
 });
 
@@ -184,6 +185,13 @@ app.post("/delete-group", (req, res) => {
 app.post("/remove-users", (req, res) => {
   const {groupId, userIds} = req.body;
   removeUsersFromGroup(groupId, userIds)
+  .then(result => res.send(result))
+  .catch(err => res.status(500).send(err))
+});
+
+app.post("/schedule-meeting", (req, res) => {
+  const {groupId, rangeEnd, duration} = req.body;
+  scheduleMeeting(groupId, duration)
   .then(result => res.send(result))
   .catch(err => res.status(500).send(err))
 });
@@ -263,7 +271,10 @@ function calendarsOfUser(user) {
 
   return googleCalendar.calendarList.list()
   .then(calendar => calendar.data.items.filter(filterFunction))
-  .catch(err => console.error(err));
+  .catch(err => {
+    console.error(err);
+    return [];
+  });
 }
 
 /**
@@ -290,7 +301,10 @@ function eventsFromCalendar(calendar, user, days) {
     orderBy: 'startTime'
   })
   .then(eventList => eventList.data.items.filter(e => e.start.dateTime)) // filter out all-day events
-  .catch(err => console.error(err));
+  .catch(err => {
+    console.error(err);
+    return [];
+  });
 }
 
 /**
@@ -368,6 +382,23 @@ function removeGroupFromUsers(group, userIds) {
     { _id: { $in: userIds } },
     { $pull: { groups: group._id } },
   )
+  .catch(err => console.error(err));
+}
+
+// TODO update when scheduler considers date range
+/**
+ * Returns a promise that returns a list of possible meeting times from the scheduler.
+ * @param {string} groupId the ID of the group
+ * @param {string} meetingLength the desired duration of the meeting, formatted as "hh:mm:ss"
+ */
+function scheduleMeeting(groupId, meetingLength) {
+  return allMemberEventsOfGroup(groupId)
+  .then(memberEvents => {
+    const date = (new Date()).getUTCDate();
+    return new Promise((resolve, reject) => {
+      resolve(scheduler.naiveSchedule(memberEvents, date, '12:00:00', '14:00:00', meetingLength, '00:05:00'))
+    });
+  })
   .catch(err => console.error(err));
 }
 
