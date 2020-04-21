@@ -147,7 +147,15 @@ function deleteUser(userId) {
 
 // TODO delete after finished debugging server
 app.get("/home", (req, res) => {
-  scheduleMeeting('395', '00:30:00')
+  const meetingParams = {
+    groupId: '395',
+    endDate: (new Date()).toISOString().split('T')[0], // today
+    startTime: '12:00:00',
+    endTime: '14:00:00',
+    duration: '00:30:00',
+    interval: '00:05:00',
+  }
+  scheduleMeeting(meetingParams)
   .then(meetings => res.send(meetings))
   .catch(err => res.status(500).send(err));
 });
@@ -388,15 +396,21 @@ function removeGroupFromUsers(group, userIds) {
 // TODO update when scheduler considers date range
 /**
  * Returns a promise that returns a list of possible meeting times from the scheduler.
- * @param {string} groupId the ID of the group
- * @param {string} meetingLength the desired duration of the meeting, formatted as "hh:mm:ss"
+ * @param {*} meetingParams the parameters of the meeting to be scheduled
  */
-function scheduleMeeting(groupId, meetingLength) {
-  return allMemberEventsOfGroup(groupId)
+function scheduleMeeting(meetingParams) {
+  return allMemberEventsOfGroup(meetingParams.groupId)
   .then(memberEvents => {
-    const date = (new Date()).getUTCDate();
     return new Promise((resolve, reject) => {
-      resolve(scheduler.naiveSchedule(memberEvents, date, '12:00:00', '14:00:00', meetingLength, '00:05:00'))
+      resolve(
+        scheduler.naiveSchedule(memberEvents,
+          meetingParams.endDate,
+          meetingParams.startTime,
+          meetingParams.endTime,
+          meetingParams.duration,
+          meetingParams.interval
+        )
+      )
     });
   })
   .catch(err => console.error(err));
