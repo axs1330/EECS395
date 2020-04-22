@@ -80,11 +80,9 @@ app.get("/", (req, res) => {
 
 app.get("/api/authorize", (req, res) => {
   const authUrl = oAuth2Client.generateAuthUrl({
-    // TODO update calendar data while user is logged off using refresh token
-    // access_type: 'offline',
-    // prompt: 'consent',
-    access_type: 'online',
-    scope: SCOPES
+    access_type: 'offline',
+    scope: SCOPES,
+    prompt: 'consent'
   });
   // Redirect to /auth
   res.redirect(authUrl);
@@ -101,7 +99,6 @@ app.get("/auth", (req, res) => {
     console.log(token);
     oAuth2Client.setCredentials(token);
     // Store token with corresponding user
-    // TODO important to store refresh token when that is implemented
     // TODO encrypt token
     google.oauth2("v2").userinfo.v2.me.get({auth: oAuth2Client}, (err, profile) => {
       if (err) return console.error(err);
@@ -113,16 +110,21 @@ app.get("/auth", (req, res) => {
   });
 });
 
+// TODO finalize this structure after deciding what to do about currentUser
 function createOrUpdateCurrentUser(profileData, token, callback) {
   currentUser = profileData.email;
+  const refreshToken = token.refresh_token;
   return usersCursor.findOne({ _id: currentUser })
   .then(user => {
     if (user) {
-      return usersCursor.updateOne({ _id: currentUser }, { $set: { token: token } });
+      if (refreshToken) {
+        return usersCursor.updateOne({ _id: currentUser }, { $set: { token: refreshToken } });
+      }
     } else {
       return usersCursor.insertOne({
         _id: currentUser,
         name: profileData.name,
+        token: refreshToken,
         groups: [],
         user_prefs: {}
       });
@@ -189,12 +191,12 @@ function usersOfGroup(groupId) {
  * @param {*} user the user from which to retrieve calendars
  */
 function calendarsOfUser(user) {
-  const token = user.token;
-  if (!token) {
-    console.error(`Could not find token for user ${user._id}`);
+  const refreshToken = user.token;
+  if (!refreshToken) {
+    console.error(`Could not find refresh token for user ${user._id}`);
     return [];
   }
-  oAuth2Client.setCredentials(token);
+  oAuth2Client.setCredentials({ refresh_token: refreshToken });
   const googleCalendar = google.calendar({version: 'v3', auth: oAuth2Client});
 
   // Filter according to user preferences, do not filter if that list is empty
@@ -218,12 +220,12 @@ function calendarsOfUser(user) {
  * @param {*} user the user whose token is to be used
  */
 function eventsFromCalendar(calendar, user, days) {
-  const token = user.token;
-  if (!token) {
-    console.error(`Could not find token for user ${user._id}`);
+  const refreshToken = user.token;
+  if (!refreshToken) {
+    console.error(`Could not find refresh token for user ${user._id}`);
     return [];
   }
-  oAuth2Client.setCredentials(token);
+  oAuth2Client.setCredentials({ refresh_token: refreshToken });
   const googleCalendar = google.calendar({version: 'v3', auth: oAuth2Client});
 
   const now = new Date();
@@ -327,7 +329,6 @@ function removeGroupFromUsers(group, userIds) {
  * @param {*} meetingParams the parameters of the meeting to be scheduled
  */
 function scheduleMeeting(groupId, meetingParams) {
-  console.log(groupId)
   return allMemberEventsOfGroup(groupId)
   .then(memberEvents => {
     return new Promise((resolve, reject) => {
@@ -372,7 +373,7 @@ async function createMeeting(groupId, startTime, endTime, location) {
   };
 
   const user = await usersCursor.findOne({ _id: currentUser });
-  oAuth2Client.setCredentials(user.token);
+  oAuth2Client.setCredentials({ refresh_token: user.token });
   const googleCalendar = google.calendar({version: 'v3', auth: oAuth2Client});
 
   return googleCalendar.events.insert({
@@ -398,7 +399,7 @@ async function createMeeting(groupId, startTime, endTime, location) {
 
 async function deleteMeeting(groupId, meetingId) {
   const user = await usersCursor.findOne({ _id: currentUser });
-  oAuth2Client.setCredentials(user.token);
+  oAuth2Client.setCredentials({ refresh_token: user.token });
   const googleCalendar = google.calendar({version: 'v3', auth: oAuth2Client});
 
   // Remove meeting from database
