@@ -148,11 +148,10 @@ function deleteUser(userId) {
 }
 
 /**
- * Returns a promise that returns an array containing all groups of the current user.
+ * Returns a promise that returns an array of all groups containing the current user.
  */
 function groupsOfCurrentUser() {
-  return usersCursor.findOne({ _id: currentUser })
-  .then(user => user.groups)
+  return groupsCursor.find({ members: currentUser }).toArray()
   .catch(err => console.error(err));
 }
 
