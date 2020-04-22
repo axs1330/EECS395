@@ -73,16 +73,22 @@ app.get("/", (req, res) => {
   // TODO
   /*
   - button will direct user to authorization page
-  - check if we have user refresh token and it is valid? if so, redirect to /home
   */
-  res.redirect('/api/authorize');
+  usersCursor.findOne({ _id: currentUser }, (err, user) => {
+    if (err) return res.status(500).send(err);
+    if (!user) return res.redirect('/api/authorize');
+
+    oAuth2Client.setCredentials({ refresh_token: user.token });
+    return oAuth2Client.getAccessToken()
+    .then(tokenInfo => res.redirect('/home'))
+    .catch(err => res.redirect('/api/authorize'))
+  });
 });
 
 app.get("/api/authorize", (req, res) => {
   const authUrl = oAuth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: SCOPES,
-    // TODO try not to show consent screen everytime
     prompt: 'consent'
   });
   // Redirect to /auth
@@ -156,6 +162,10 @@ function groupsOfCurrentUser() {
   .catch(err => console.error(err));
 }
 
+/**
+ * Returns a Google Calendar API object from the given refresh token.
+ * @param {string} refreshToken the refresh token to use
+ */
 function googleCalendarAPI(refreshToken) {
   oAuth2Client.setCredentials({ refresh_token: refreshToken });
   return google.calendar({version: 'v3', auth: oAuth2Client});
