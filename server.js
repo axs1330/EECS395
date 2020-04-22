@@ -73,7 +73,7 @@ app.get("/", (req, res) => {
   // TODO
   /*
   - button will direct user to authorization page
-  - check if we have user access token? if so, redirect to /home
+  - check if we have user refresh token and it is valid? if so, redirect to /home
   */
   res.redirect('/api/authorize');
 });
@@ -82,6 +82,7 @@ app.get("/api/authorize", (req, res) => {
   const authUrl = oAuth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: SCOPES,
+    // TODO try not to show consent screen everytime
     prompt: 'consent'
   });
   // Redirect to /auth
@@ -155,6 +156,11 @@ function groupsOfCurrentUser() {
   .catch(err => console.error(err));
 }
 
+function googleCalendarAPI(refreshToken) {
+  oAuth2Client.setCredentials({ refresh_token: refreshToken });
+  return google.calendar({version: 'v3', auth: oAuth2Client});
+}
+
 // TODO filter members
 /**
  * Returns a promise that returns all events of all members in the group with the given ID.
@@ -195,8 +201,7 @@ function calendarsOfUser(user) {
     console.error(`Could not find refresh token for user ${user._id}`);
     return [];
   }
-  oAuth2Client.setCredentials({ refresh_token: refreshToken });
-  const googleCalendar = google.calendar({version: 'v3', auth: oAuth2Client});
+  const googleCalendar = googleCalendarAPI(refreshToken);
 
   // Filter according to user preferences, do not filter if that list is empty
   const calendarNames = user.user_prefs.calendars;
@@ -224,8 +229,7 @@ function eventsFromCalendar(calendar, user, days) {
     console.error(`Could not find refresh token for user ${user._id}`);
     return [];
   }
-  oAuth2Client.setCredentials({ refresh_token: refreshToken });
-  const googleCalendar = google.calendar({version: 'v3', auth: oAuth2Client});
+  const googleCalendar = googleCalendarAPI(refreshToken);
 
   const now = new Date();
   const end = new Date(now.getTime() + (1000 * 60 * 60 * 24 * days));
@@ -346,10 +350,17 @@ function scheduleMeeting(groupId, meetingParams) {
 }
 
 // TODO 
-// custom time zone
+// custom time zone (group prefs)
 // option for recurrence
 // attendees: group.members
 // option for reminders
+/**
+ * Returns a promise that creates a meeting and Google event with the given parameters.
+ * @param {string} groupId the ID of the group for the meeting
+ * @param {string} startTime the start time of the meeting, formatted as "hh:mm:ss"
+ * @param {string} endTime the end time of the meeting, formatted as "hh:mm:ss"
+ * @param {string} location the location of the meeting, formatted as a valid address
+ */
 async function createMeeting(groupId, startTime, endTime, location) {
   const group = await groupsCursor.findOne({ _id: groupId });
   const eventTemplate = {
@@ -372,8 +383,7 @@ async function createMeeting(groupId, startTime, endTime, location) {
   };
 
   const user = await usersCursor.findOne({ _id: currentUser });
-  oAuth2Client.setCredentials({ refresh_token: user.token });
-  const googleCalendar = google.calendar({version: 'v3', auth: oAuth2Client});
+  const googleCalendar = googleCalendarAPI(user.token);
 
   return googleCalendar.events.insert({
     auth: oAuth2Client,
@@ -396,10 +406,14 @@ async function createMeeting(groupId, startTime, endTime, location) {
   .catch(err => console.error('There was an error contacting the Calendar service: ' + err));
 }
 
+/**
+ * Returns a promise that deletes the given meeting from the given group.
+ * @param {string} groupId the ID of the group
+ * @param {string} meetingId the ID of the meeting
+ */
 async function deleteMeeting(groupId, meetingId) {
   const user = await usersCursor.findOne({ _id: currentUser });
-  oAuth2Client.setCredentials({ refresh_token: user.token });
-  const googleCalendar = google.calendar({version: 'v3', auth: oAuth2Client});
+  const googleCalendar = googleCalendarAPI(user.token);
 
   // Remove meeting from database
   groupsCursor.updateOne(
@@ -435,7 +449,6 @@ app.get("/home", (req, res) => {
 app.post("/home", (req, res) => {
   groupsOfCurrentUser()
   .then(events => {
-    console.log(events)
     res.send(events);
   })
   .catch(err => res.status(500).send(err));
