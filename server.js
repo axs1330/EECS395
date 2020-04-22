@@ -117,17 +117,26 @@ app.get("/auth", (req, res) => {
   });
 });
 
-// TODO finalize this structure after deciding what to do about currentUser
+/**
+ * Returns a promise that updates the current user's refresh token, if the current user
+ * already exists in the database. If not, a new document based on the current user is
+ * created.
+ * @param {*} profileData the profile data of the current user, retrieved from Google
+ * @param {string} token the access token
+ * @param {*} callback the function to be called after this one
+ */
 function createOrUpdateCurrentUser(profileData, token, callback) {
+  // TODO could remove the line below when we finish the start page
   currentUser = profileData.email;
   const refreshToken = token.refresh_token;
   return usersCursor.findOne({ _id: currentUser })
   .then(user => {
     if (user) {
-      if (refreshToken) {
-        return usersCursor.updateOne({ _id: currentUser }, { $set: { token: refreshToken } });
-      }
+      if (!refreshToken) throw ReferenceError('refreshToken is not defined');
+      console.log(`Updating refresh token of user ${currentUser}`)
+      return usersCursor.updateOne({ _id: currentUser }, { $set: { token: refreshToken } });
     } else {
+      console.log(`Creating new user with email ${currentUser}`);
       return usersCursor.insertOne({
         _id: currentUser,
         name: profileData.name,
