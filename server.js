@@ -76,22 +76,37 @@ app.get("/", (req, res) => {
   */
   usersCursor.findOne({ _id: currentUser }, (err, user) => {
     if (err) return res.status(500).send(err);
-    if (!user) return res.redirect('/api/authorize');
+    if (!user) return res.redirect('/api/authorize/refresh');
 
     oAuth2Client.setCredentials({ refresh_token: user.token });
     return oAuth2Client.getAccessToken()
-    .then(tokenInfo => res.redirect('/home'))
-    .catch(err => res.redirect('/api/authorize'))
+    .then(tokenInfo => res.redirect('/api/authorize/login'))
+    .catch(err => res.redirect('/api/authorize/refresh'))
   });
 });
 
-app.get("/api/authorize", (req, res) => {
-  const authUrl = oAuth2Client.generateAuthUrl({
-    access_type: 'offline',
-    scope: SCOPES,
-    prompt: 'consent'
-  });
+app.get("/api/authorize/:action", (req, res) => {
+  const {action} = req.params;
+
+  // login: we have valid refresh token, simply sign in
+  // refresh: go through authentication to get valid refresh token
+  if (action === 'login') {
+    authParams = { 
+      access_type: 'online',
+      scope: SCOPES
+    }
+  } else if (action === 'refresh') {
+    authParams = {
+      access_type: 'offline',
+      scope: SCOPES,
+      prompt: 'consent'
+    }
+  } else {
+    return res.status(500).send(`Unknown action: ${action}`)
+  }
+
   // Redirect to /auth
+  const authUrl = oAuth2Client.generateAuthUrl(authParams);
   res.redirect(authUrl);
 });
 
@@ -132,9 +147,10 @@ function createOrUpdateCurrentUser(profileData, token, callback) {
   return usersCursor.findOne({ _id: currentUser })
   .then(user => {
     if (user) {
-      if (!refreshToken) throw ReferenceError('refreshToken is not defined');
-      console.log(`Updating refresh token of user ${currentUser}`)
-      return usersCursor.updateOne({ _id: currentUser }, { $set: { token: refreshToken } });
+      if (refreshToken) {
+        console.log(`Updating refresh token of user ${currentUser}`)
+        return usersCursor.updateOne({ _id: currentUser }, { $set: { token: refreshToken } });
+      }
     } else {
       console.log(`Creating new user with email ${currentUser}`);
       return usersCursor.insertOne({
