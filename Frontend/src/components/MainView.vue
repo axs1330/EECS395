@@ -3,13 +3,17 @@
     <v-card-title>
       <p>{{group.name}}</p>
     </v-card-title>
-        <v-chip v-for="(member, i) in group.members" v-bind:key="i">
-          <p>{{member}}</p>
-        </v-chip>
+        <div class="text-center">
+            <v-chip  close v-for="(member) in group.members" v-bind:key="member" @click:close="$emit('remove-member', group, member)">
+                <p>{{member}}</p>
+            </v-chip>
+        </div>
     <v-list dense>
       <v-list-item-group v-model="meeting" color="primary">
-        <v-list-item v-for="(meeting, i) in group.meetings" v-bind:key="i">
-          <p>{{meeting}}</p>
+        <v-list-item v-for="(meeting) in group.meetings" v-bind:key="meeting.id">
+          <p>{{meeting.start}}</p>
+          <p>{{meeting.end}}</p>
+          <p>{{meeting.location}}</p>
         </v-list-item>
       </v-list-item-group>
     </v-list>

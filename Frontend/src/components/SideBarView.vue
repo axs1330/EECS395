@@ -11,7 +11,7 @@
             <template v-slot:activator="{ on }">
               <v-btn outlined icon small v-on="on" color="primary">add</v-btn>
             </template>
-            <GroupAddModal v-on:close-modal="dialog = false"></GroupAddModal>
+            <GroupAddModal v-on:close-modal="dialog = false" v-on:refresh-groups="refreshGroups"></GroupAddModal>
           </v-dialog>
         </v-card-subtitle>
         <section v-if="errored">
@@ -22,15 +22,15 @@
             <v-progress-circular color="grey lighten-1" indeterminate> </v-progress-circular>
           </div>
           <div v-else>
-            <v-tab v-for="(group, i) in groups" v-bind:key="i">
+            <v-tab v-for="group in groups" v-bind:key="group._id">
               <p>{{group.name}}</p>
             </v-tab>
           </div>
         </section>
       </v-card>
       <v-tabs-items v-model="group" vertical class="fill-height">
-        <v-tab-item v-for="(group, i) in groups" v-bind:key="i" class="fill-height">
-          <MainView v-bind:group="group"/>
+        <v-tab-item v-for="group in groups" v-bind:key="group._id" class="fill-height">
+          <MainView v-bind:group="group" v-on:remove-member="removeMember"/>
         </v-tab-item>
       </v-tabs-items>
     </v-tabs>
@@ -59,14 +59,42 @@ export default {
 
   mounted(){
     HTTP.post('/home')
+            .then(response => {
+              this.groups = response.data
+            })
+            .catch(error => {
+                console.log(error)
+                this.errored = true
+            })
+            .finally(() => this.loading = false)
+  },
+
+  methods:{
+    refreshGroups(){
+      HTTP.post('/home')
         .then(response => {
           this.groups = response.data
         })
         .catch(error => {
-            console.log(error)
-            this.errored = true
+          console.log(error)
+          this.errored = true
         })
         .finally(() => this.loading = false)
+    },
+
+    removeMember(group, member){
+      console.log(group._id)
+      console.log(member)
+      //HTTP.post('/remove-members', {
+        //groupId: this.group.id,
+        //member: event
+      //})
+      //.then(response => {
+        //response
+      //})
+      this.refreshGroups()
+    }
+
   }
 };
 </script>

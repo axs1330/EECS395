@@ -35,15 +35,14 @@ export default {
   methods: {
     cleanupModal() {
       this.members = [];
+      this.groupName = "";
       this.name= "";
       this.$emit('close-modal');
       this.$emit('refresh-groups');
       //TODO: create event to refresh list of groups
     },
     createGroup() {
-
       HTTP.post('/create-group', {
-        _id: "test",
         name: this.groupName,
         members: this.members,
         meetings: [],
@@ -51,9 +50,6 @@ export default {
       })
       .then(response => {
         response
-      })
-      .catch(error => {
-        console.log(error)
       })
       this.cleanupModal();
     }

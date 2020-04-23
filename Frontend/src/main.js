@@ -9,6 +9,8 @@ Vue.use(Vuetify);
 export default new Vuetify({});
 
 new Vue({
-  vuetify: new Vuetify(),
+  vuetify: new Vuetify({
+    icons: {iconfont: 'md'}
+  }),
   render: h => h(App)
 }).$mount("#app");
