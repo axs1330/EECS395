@@ -4,8 +4,8 @@
       <p>{{group.name}}</p>
     </v-card-title>
         <div class="text-center">
-            <v-chip  close v-for="(member) in group.members" v-bind:key="member" @click:close="$emit('remove-member', group, member)">
-                <p>{{member}}</p>
+            <v-chip  close v-for="(member) in group.members" v-bind:key="member" @click:close="$emit('remove-member', group, member)" class="text-center">
+                {{member}}
             </v-chip>
         </div>
     <v-list dense>

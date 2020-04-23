@@ -10,7 +10,7 @@ export default new Vuetify({});
 
 new Vue({
   vuetify: new Vuetify({
-    icons: {iconfont: 'md'}
+    icons: {iconfont: 'mdi'}
   }),
   render: h => h(App)
 }).$mount("#app");

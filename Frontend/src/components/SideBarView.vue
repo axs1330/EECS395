@@ -34,6 +34,7 @@
         </v-tab-item>
       </v-tabs-items>
     </v-tabs>
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
   </div>
 </template>
 
@@ -83,15 +84,13 @@ export default {
     },
 
     removeMember(group, member){
-      console.log(group._id)
-      console.log(member)
-      //HTTP.post('/remove-members', {
-        //groupId: this.group.id,
-        //member: event
-      //})
-      //.then(response => {
-        //response
-      //})
+      HTTP.post('/remove-members', {
+        groupId: group._id,
+        member: member
+      })
+      .then(response => {
+        response
+      })
       this.refreshGroups()
     }
 
