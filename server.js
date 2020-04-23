@@ -1,3 +1,4 @@
+const assert = require('assert');
 const fs = require('fs');
 const crypto = require('crypto')
 const Promise = require('promise');
@@ -120,7 +121,7 @@ app.get("/auth", (req, res) => {
     // TODO remove after debugging
     console.log(token);
     oAuth2Client.setCredentials(token);
-    // Store token with corresponding user
+    // Store refresh token with corresponding user
     // TODO encrypt token
     google.oauth2("v2").userinfo.v2.me.get({auth: oAuth2Client}, (err, profile) => {
       if (err) return console.error(err);
@@ -141,8 +142,8 @@ app.get("/auth", (req, res) => {
  * @param {*} callback the function to be called after this one
  */
 function createOrUpdateCurrentUser(profileData, token, callback) {
-  // TODO could remove the line below when we finish the start page
-  currentUser = profileData.email;
+  assert.strictEqual(profileData.email, currentUser, 'Signed-in email does not match current user email.')
+
   const refreshToken = token.refresh_token;
   return usersCursor.findOne({ _id: currentUser })
   .then(user => {
