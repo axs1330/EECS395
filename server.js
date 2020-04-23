@@ -210,7 +210,7 @@ function allMemberEventsOfGroup(groupId, endDate) {
     .then(calendarLists => {
       return Promise.all(calendarLists.map((calendars, i) => {
         return Promise.all(calendars.map(c => eventsFromCalendar(c, users[i], endDate)))
-        .then(events => [].concat.apply([], events));
+        .then(events => [].concat(...events));
       }));
     })
     .catch(err => console.error(err));
@@ -223,7 +223,8 @@ function allMemberEventsOfGroup(groupId, endDate) {
  * @param {string} groupId the ID of the specified group
  */
 function usersOfGroup(groupId) {
-  return groupsCursor.findOne({ _id: groupId })
+  const id = new ObjectId(groupId);
+  return groupsCursor.findOne({ _id: id })
   .then(group => usersCursor.find({ _id: { $in: group.members } }).toArray())
   .catch(err => console.error(err));
 }
@@ -287,13 +288,13 @@ function eventsFromCalendar(calendar, user, endDate) {
 
 /**
  * Returns a promise that creates the given group.
- * @param {string} group._id the ID of the group
  * @param {string} group.name the name of the group
  * @param {string[]} group.members the members of the group
  * @param {string} group.meetings the meetings of the group
  * @param {*} group.group_prefs the preferences of the group
  */
 function createGroup(group) {
+  group._id = new ObjectId();
   return groupsCursor.insertOne(group)
   .then(result => addGroupToUsers(group))
   .catch(err => console.error(err));
@@ -305,11 +306,12 @@ function createGroup(group) {
  * @param {string[]} userIds the list of IDs of the users to be added
  */
 function addUsersToGroup(groupId, userIds) {
+  const id = new ObjectId(groupId);
   return groupsCursor.updateOne(
-    { _id: groupId },
+    { _id: id },
     { $addToSet: { members: { $each: userIds } } }
   )
-  .then(result => groupsCursor.findOne({ _id: groupId }))
+  .then(result => groupsCursor.findOne({ _id: id }))
   .then(updatedGroup => addGroupToUsers(updatedGroup))
   .catch(err => console.error(err));
 }
@@ -331,9 +333,10 @@ function addGroupToUsers(group) {
  * @param {string} groupId the ID of the group to be deleted
  */
 function deleteGroup(groupId) {
-  return groupsCursor.findOne({ _id: groupId })
+  const id = new ObjectId(groupId);
+  return groupsCursor.findOne({ _id: id })
   .then(group => removeGroupFromUsers(group, group.members))
-  .then(result => groupsCursor.deleteOne({ _id: groupId }))
+  .then(result => groupsCursor.deleteOne({ _id: id }))
   .catch(err => console.error(err));
 }
 
@@ -343,13 +346,14 @@ function deleteGroup(groupId) {
  * @param {string[]} userIds the list of IDs of the users to remove
  */
 function removeUsersFromGroup(groupId, userIds) {
-  return groupsCursor.findOne({ _id: groupId })
+  const id = new ObjectId(groupId);
+  return groupsCursor.findOne({ _id: id })
   .then(group => removeGroupFromUsers(group, userIds))
   .then(result => {
     return groupsCursor.updateOne(
-      { _id: groupId },
+      { _id: id },
       { $pullAll: { members: userIds } }
-    )
+    );
   })
   .catch(err => console.error(err));
 }
