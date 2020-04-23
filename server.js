@@ -210,7 +210,7 @@ function allMemberEventsOfGroup(groupId, endDate) {
     .then(calendarLists => {
       return Promise.all(calendarLists.map((calendars, i) => {
         return Promise.all(calendars.map(c => eventsFromCalendar(c, users[i], endDate)))
-        .then(events => events.flat());
+        .then(events => [].concat.apply([], events));
       }));
     })
     .catch(err => console.error(err));
@@ -287,7 +287,11 @@ function eventsFromCalendar(calendar, user, endDate) {
 
 /**
  * Returns a promise that creates the given group.
- * @param {*} group the group to be created
+ * @param {string} group._id the ID of the group
+ * @param {string} group.name the name of the group
+ * @param {string[]} group.members the members of the group
+ * @param {string} group.meetings the meetings of the group
+ * @param {*} group.group_prefs the preferences of the group
  */
 function createGroup(group) {
   return groupsCursor.insertOne(group)
