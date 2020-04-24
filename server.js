@@ -73,40 +73,36 @@ app.listen(port, () => {
 app.get("/", (req, res) => {
   // TODO
   /*
-  - button will direct user to authorization page
+  - have the user enter their email address
+  - button will send the email to /api/authorize
   */
-  usersCursor.findOne({ _id: currentUser }, (err, user) => {
-    if (err) return res.status(500).send(err);
-    if (!user) return res.redirect('/api/authorize/refresh');
-
-    oAuth2Client.setCredentials({ refresh_token: user.token });
-    return oAuth2Client.getAccessToken()
-    .then(tokenInfo => res.redirect('/api/authorize/login'))
-    .catch(err => res.redirect('/api/authorize/refresh'))
-  });
+  res.redirect('/api/authorize');
 });
 
-app.get("/api/authorize/:action", (req, res) => {
-  const {action} = req.params;
+app.get("/api/authorize", async (req, res) => {
+  // currentUser = req.body.email;
+  let authParams = {
+    access_type: 'offline',
+    scope: SCOPES,
+    prompt: 'consent'
+  };
 
-  // login: we have valid refresh token, simply sign in
-  // refresh: go through authentication to get valid refresh token
-  if (action === 'login') {
-    authParams = { 
-      access_type: 'online',
-      scope: SCOPES
+  const user = await usersCursor.findOne({ _id: currentUser });
+  if (user) {
+    oAuth2Client.setCredentials({ refresh_token: user.token });
+    try {
+      await oAuth2Client.getAccessToken();
+      console.log(`Valid refresh token for user ${currentUser}`);
+      authParams = {
+        access_type: 'online',
+        scope: SCOPES
+      }
+    } catch (e) {
+      // use default authParams
+      console.log(`Invalid refresh token for user ${currentUser}`);
     }
-  } else if (action === 'refresh') {
-    authParams = {
-      access_type: 'offline',
-      scope: SCOPES,
-      prompt: 'consent'
-    }
-  } else {
-    return res.status(500).send(`Unknown action: ${action}`)
   }
 
-  // Redirect to /auth
   const authUrl = oAuth2Client.generateAuthUrl(authParams);
   res.redirect(authUrl);
 });
@@ -118,8 +114,6 @@ app.get("/auth", (req, res) => {
   }
   oAuth2Client.getToken(code, (err, token) => {
     if (err) return console.error(err);
-    // TODO remove after debugging
-    console.log(token);
     oAuth2Client.setCredentials(token);
     // Store refresh token with corresponding user
     // TODO encrypt token
@@ -500,7 +494,7 @@ app.get("/home", (req, res) => {
   // createMeeting(meeting)
   // this format does not reflect the intended formatting for this function
   const meetingParams = {
-    groupId: '395',
+    groupId: '5ea1e09ac3b7ed2a60d398f3',
     endDate: '2020-04-21',
     startTime: '12:00:00',
     endTime: '14:00:00',
