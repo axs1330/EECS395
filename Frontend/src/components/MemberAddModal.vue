@@ -2,9 +2,11 @@
   <div>
     <v-card>
       <v-card-title class="headline">Add New Members to {{groupName}}</v-card-title>
+      <v-chip  v-for="member in members" v-bind:key="member" class="text-center">
+        {{member}}
+      </v-chip>
       <v-form>
-
-        <v-combobox :rules="[rules.required, rules.email]" label="email address" chips multiple v-model="members"></v-combobox>
+        <v-combobox :rules="[rules.required]" label="email address" chips multiple v-model="tmembers"></v-combobox>
       </v-form>
       <v-card-actions>
         <v-btn color="blue darken-1" text v-on:click="$emit('close-modal')">Close</v-btn>
@@ -21,13 +23,9 @@ export default {
   props: ["members", "groupName", "groupId"],
   data() {
     return {
+      tmembers: [],
       rules: {
         required: value => !!value || "Required.",
-        counter: value => value.length <= 20 || "Max 20 characters",
-        email: value => {
-          const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-          return pattern.test(value) || "Invalid e-mail.";
-        }
       }
     };
   },
@@ -41,7 +39,7 @@ export default {
     addMember() {
       HTTP.post('/add-members', {
         groupId: this.groupId,
-        members: this.members
+        userIds: this.tmembers
       })
       .then(response => {
         response

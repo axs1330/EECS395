@@ -87,7 +87,7 @@ export default {
       var members = [member]
       HTTP.post('/remove-members', {
         groupId: group._id,
-        member: members
+        userIds: members
       })
       .then(response => {
         response

@@ -15,18 +15,21 @@
                 </template>
                 <MemberAddModal v-bind:members="group.members"
                                 v-bind:groupName="group.name"
-                                v-bind:groupId="group.id"
+                                v-bind:groupId="group._id"
                                 v-on:close-modal="dialog = false"
                                 v-on:refresh-groups="$emit('refresh-groups')"
                                 />
             </v-dialog>
         </div>
-    <v-list dense>
+    <v-list dense class="justify-center">
       <v-list-item-group v-model="meeting" color="primary">
-        <v-list-item v-for="(meeting) in group.meetings" v-bind:key="meeting.id">
-          <p>{{meeting.start}}</p>
-          <p>{{meeting.end}}</p>
-          <p>{{meeting.location}}</p>
+        <v-list-item v-for="meeting in group.meetings" v-bind:key="meeting.id">
+          {{meeting.start}}
+          {{meeting.end}}
+          {{meeting.location}}
+          <v-btn fab x-small outlined color="primary" @click="removeMeeting(meeting.id)">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
         </v-list-item>
       </v-list-item-group>
     </v-list>
@@ -59,16 +62,24 @@ export default {
     };
   },
   mounted(){
-  //   HTTP.get('/home', {
-  //     groupId: this.group.id
-  //   })
-  //   .then(response => {
-  //     this.members = response.data.members
-  //     this.meetings = response.data.meetings
-  //   })
-  //   .catch(error => {
-  //     console.log(error)
-  //   })
+
+  },
+  methods: {
+  removeMeeting(meetingId){
+  console.log(this.group._id);
+  console.log(meetingId);
+  /*  HTTP.get('/delete-meeting', {
+        groupId: this.group._id
+        meetingId: meetingId
+    })
+    .then(response => {
+        response
+    })
+    .catch(error => {
+        console.log(error)
+    });*/
+  }
+
   }
 };
 </script>

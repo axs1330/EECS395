@@ -530,6 +530,7 @@ app.post("/delete-group", (req, res) => {
 
 app.post("/add-members", (req, res) => {
   const {groupId, userIds} = req.body;
+  console.log(userIds);
   addUsersToGroup(groupId, userIds)
   .then(result => res.send(result))
   .catch(err => res.status(500).send(err))
