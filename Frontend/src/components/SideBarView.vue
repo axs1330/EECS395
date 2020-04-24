@@ -2,14 +2,14 @@
   <div class="flexcard">
     <v-tabs vertical v-model="group" dark class="fill-height">
       <v-card dark fill-height>
-        <v-card-title>
+        <v-card-title class="justify-center">
           <p>Groups</p>
         </v-card-title>
-        <v-card-subtitle>
+        <v-card-subtitle class="justify-center">
           <p>Your Groups</p>
-          <v-dialog persistent v-model="dialog">
+          <v-dialog persistent v-model="dialog" width="unset">
             <template v-slot:activator="{ on }">
-              <v-btn outlined icon small v-on="on" color="primary">add</v-btn>
+              <v-btn outlined fab small v-on="on" color="primary">add</v-btn>
             </template>
             <GroupAddModal v-on:close-modal="dialog = false" v-on:refresh-groups="refreshGroups"></GroupAddModal>
           </v-dialog>
@@ -30,7 +30,7 @@
       </v-card>
       <v-tabs-items v-model="group" vertical class="fill-height">
         <v-tab-item v-for="group in groups" v-bind:key="group._id" class="fill-height">
-          <MainView v-bind:group="group" v-on:remove-member="removeMember"/>
+          <MainView v-bind:group="group" v-on:remove-member="removeMember" v-on:refresh-groups="refreshGroups"/>
         </v-tab-item>
       </v-tabs-items>
     </v-tabs>
@@ -84,9 +84,10 @@ export default {
     },
 
     removeMember(group, member){
+      var members = [member]
       HTTP.post('/remove-members', {
         groupId: group._id,
-        member: member
+        member: members
       })
       .then(response => {
         response

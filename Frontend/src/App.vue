@@ -1,6 +1,8 @@
 <template>
   <v-app>
-    <v-app-bar app color="blue darken-4">CampusScheduler [icon] [account related icons on the right]</v-app-bar>
+    <v-app-bar app dark color="blue darken-4">
+        <v-toolbar-title color="white">CampusScheduler</v-toolbar-title>
+    </v-app-bar>
     <v-content>
     <v-container fluid class="fill-height">
       <v-row class="fill-height">
