@@ -33,11 +33,11 @@
         </v-list-item>
       </v-list-item-group>
     </v-list>
-    <v-dialog width="unset">
+    <v-dialog persistent v-model="mdialog" width="unset">
       <template v-slot:activator="{ on }">
         <v-btn outlined fab small v-on="on" color="primary">add</v-btn>
       </template>
-      <MeetingAddModal/>
+      <MeetingAddModal v-on:close-modal="mdialog = false"/>
     </v-dialog>
   </v-card>
 </template>
@@ -45,7 +45,7 @@
 <script>
 import MeetingAddModal from "./MeetingAddModal.vue";
 import MemberAddModal from "./MemberAddModal.vue";
-// import {HTTP} from "../http-common.js";
+//import {HTTP} from "../http-common.js";
 export default {
   name: "MainView",
   components: {
@@ -56,6 +56,7 @@ export default {
   data() {
     return {
       dialog: false,
+      mdialog: false,
       members: [],
       meetings: [],
       meeting: 0
@@ -68,7 +69,7 @@ export default {
     removeMeeting(meetingId){
       console.log(this.group._id);
       console.log(meetingId);
-    /*  HTTP.get('/delete-meeting', {
+    /*  HTTP.post('/delete-meeting', {
         groupId: this.group._id,
         meetingId: meetingId
       })
@@ -81,7 +82,7 @@ export default {
     },
 
     sendMeetingDetails(){
-      /*  HTTP.get('/delete-meeting', {
+      /*  HTTP.post('/delete-meeting', {
         groupId: this.group._id,
         endDate: this.date,
         startTime: ,
