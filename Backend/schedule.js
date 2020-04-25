@@ -1,6 +1,7 @@
 const fs = require('fs');
 
 let scheduleFileList = ['example-events2.json']
+let default_location_file = 'Supporting Documents\Meeting Locations'
 /*
 let rawdata = fs.readFileSync('example-events2.json');
 let student = JSON.parse(rawdata);
@@ -139,6 +140,141 @@ function naiveSchedule(schedules, day, start, end, event_length, inteval) {
     return([best_start_time, time_add(best_start_time, event_length)])
 }
 
+function naiveScheduleWithLocation(schedules, start, end, event_length, inteval, location_file){
+/*
+    Params:
+    Schedules: an array of parsed schedules 
+    day: formated as "2020-02-19"
+    Start: string formating such as "2020-02-19T09:30:00-05:00"
+    End: Same
+    Inteval: Search inteval for the for loop
+    */
+
+    /*
+    configs
+    */
+
+   let time_eval_mode = 'squared'
+   let best_start_time = "00:00:00"
+   let best_date = ""
+   let best_utility = -10000000000
+   let trial_time_start = getTime(start)
+   let current_date = getDate(start)
+   let end_date = getDate(end)
+   let trial_time_end = getTime(end)
+   while(date_diff(end_date, current_date) >= 0){
+        let last_day_flag = (date_diff(end_date, current_date) == 0)
+        //saving a big if statement with the following. If we reach the last date in range, then stop at the sprcified end time
+        while(time_add(trial_time_start, event_length) != false && (!last_day_flag || time_diff(time_add(trial_time_start, event_length), trial_time_end) < 0)){
+        let trial_time_end = time_add(trial_time_start, event_length)
+        console.log("Considering: " + trial_time_start + " to " + trial_time_end)
+        let closest_previous = "00:00:00"
+        let closest_previous_location = ""
+        let closest_after = "23:59:59"
+        let closest_after_location = ""
+        let conflict_flag = false;
+        for(var i = 0; i < schedules.length; i++){//bad SW practice TODO: fix
+            // currently iterating every person's calander
+            let current_schedule = schedules[i];
+            for(var j = 0; j < current_schedule.length; j++){
+                //now iterating every event on that calander. 
+                let current_event = current_schedule[j]
+                let current_event_start = getStartTime(current_event)
+                let current_event_end = getEndTime(current_event)
+                if(getEventDate(current_event) != current_date){
+                    continue
+                }
+                if(earlier(trial_time_start, current_event_start)){//our event starts earlier than scheduled event
+                    if(!earlier(trial_time_end, current_event_start)){//our event also ends later than schduled event's start
+                        console.log("conflict event info:")
+                        console.log("Start time: "+ current_event_start)
+                        console.log("End time: " + current_event_end)
+                        conflict_flag = true;
+                    }
+                }
+                if(!earlier(trial_time_start, current_event_start)){//out event starts later than schuduled event
+                    if(earlier(trial_time_start, current_event_end)){//our event event starts later than scheduled end
+                        console.log("conflict event info:")
+                        console.log("Start time: "+ current_event_start)
+                        console.log("End time: " + current_event_end)
+                        conflict_flag = true;
+                    }
+                }
+                if(conflict_flag){
+                    break;
+                }
+                if(earlier(closest_previous, current_event_end) && earlier(current_event_end, trial_time_start)){
+                    closest_previous = current_event_start
+                    closest_previous_location = getLocation(current_event)
+                }
+                if(earlier(current_event_start, closest_after) && earlier(trial_time_end, current_event_start)){
+                    closest_after = current_event_end
+                    closest_after_location = getLocation(current_event)
+                }
+            }
+            if(conflict_flag)
+                break;
+        }
+        if(conflict_flag){
+            console.log("Conflict Exists :(")
+        }else{//Right now we can consider location
+            let slot_utility = 0
+            if(time_eval_mode == 'squared'){
+                slot_utility += -1 * (time_diff(trial_time_start, closest_previous) * time_diff(trial_time_start, closest_previous));
+                slot_utility += -1 * (time_diff(closest_after, trial_time_end) * time_diff(closest_after, trial_time_end));
+            }else{
+                slot_utility = -1 * (time_diff(trial_time_start, closest_previous) + time_diff(closest_after, trial_time_end))
+            }
+            if(slot_utility > best_utility){
+                best_utility = slot_utility
+                best_start_time = trial_time_start
+                best_date = current_date
+                //TODO-LOCATION find best location according closest previous location and closest after location
+            }
+            console.log("No conflict")
+            console.log("closest previous event at : " + closest_previous + " Located at " +closest_previous_location)
+            console.log("closest after evert at : " + closest_after + " Located at " + closest_after_location)
+            console.log("Slot utility: " + slot_utility)
+            }
+            trial_time_start = time_add(trial_time_start, inteval)
+            }
+        current_date = date_inc(current_date)
+    }
+   return([best_start_time, time_add(best_start_time, event_length), best_date])
+}
+
+function parseLocationFile(filename){//TODO: Does not work, need to be fixed
+    const fs = require('fs')
+    var locations = [];
+    $(document).ready(function() {
+      //fetch text file
+      $.get(filename, function(data) {
+        //split on new lines
+        var lines = data.split('\n');
+  
+        //This line didn't work and gave me an error? 
+        //person = lines.split(',');
+  
+        for (var i = 0; i < lines.length; i++){
+            var curr_location = lines[i].split(',');
+            var tmpLocation = 
+             {//Building	Lat	Long	Address	Google Maps Name
+               building = curr_location[0],
+               name = curr_location[1],
+               salary = curr_location[2],
+               gender = curr_location[3],
+               category = curr_location[4],
+             }
+             locations.push(tmpLocation);
+          }
+      });
+    });
+}
+
+function getLocation(event){
+    return(event.location)
+}
+
 function getStartTime(event){
     //input is jason event
     return(getTime(event.start.dateTime))
@@ -181,6 +317,60 @@ function time_diff(time1, time2){
    diff += second1 - second2
    return diff
 }
+function date_diff(date1, date2){
+    /*
+    input formats = '2020-02-19'
+    return date1 - date2. positive if date1 is later
+    */
+   let day_per_month = ['31', '29', '31', '30', '31', '30', '31', '31','30', '31', '30', '31']
+   let diff = 0
+   let year1 = parseInt(date1.substring(0,4))
+   let year2 = parseInt(date2.substring(0,4))
+   diff += (year1 - year2) * 366
+   let month1 = parseInt(date1.substring(5,7))
+   let month2 = parseInt(date2.substring(5,7))
+   diff += (month1 - month2) * day_per_month[month1-1]
+   let day1 = parseInt(date1.substring(8))
+   let day2 = parseInt(date2.substring(8))
+   diff += day1 - day2
+   return diff
+}
+function date_inc(date){
+     /*
+    input formats = '2020-02-19'
+    */
+    let day_per_month = ['31', '29', '31', '30', '31', '30', '31', '31','30', '31', '30', '31']
+    let day = parseInt(date.substring(8))
+    let month = parseInt(date.substring(5,7))
+    let year = parseInt(date.substring(0,4))
+    if (day + 1 == day_per_month[month - 1]){
+        if(month + 1 == 13){
+            year += 1
+            month = 1
+            day = 1
+        }else{
+            month += 1
+            day = 1
+        }
+    }else{
+        day += 1
+    }
+    let output = ""
+    output = output + year;
+    output = output + "-";
+    if(month < 10){
+        output = output + "0" + month;
+        output = output + "-";
+    }else{
+        output = output + month;
+    }
+    if(day < 10){
+        output = output + "0" + day;
+    }else{
+        output = output + day;
+    }
+}
+
 function earlier(time1, time2){
     if(time_diff(time1, time2) > 0){
         return false

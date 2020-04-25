@@ -7,6 +7,8 @@
     "@googlemaps/google-maps-services-js": "^2.1.2",
     "body-parser": "^1.19.0",
     "bootstrap-vue": "^2.4.2",
+    "d3": "^5.16.0",
+    "dataframe-js": "^1.4.3",
     "express": "^4.17.1",
     "googleapis": "^47.0.0",
     "jquery": "^1.12.4",
