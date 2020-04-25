@@ -65,20 +65,36 @@ export default {
 
   },
   methods: {
-  removeMeeting(meetingId){
-  console.log(this.group._id);
-  console.log(meetingId);
-  /*  HTTP.get('/delete-meeting', {
-        groupId: this.group._id
+    removeMeeting(meetingId){
+      console.log(this.group._id);
+      console.log(meetingId);
+    /*  HTTP.get('/delete-meeting', {
+        groupId: this.group._id,
         meetingId: meetingId
-    })
-    .then(response => {
+      })
+      .then(response => {
         response
-    })
-    .catch(error => {
+      })
+      .catch(error => {
         console.log(error)
-    });*/
-  }
+      });*/
+    },
+
+    sendMeetingDetails(){
+      /*  HTTP.get('/delete-meeting', {
+        groupId: this.group._id,
+        endDate: this.date,
+        startTime: ,
+        endTime: ,
+        duration:
+      })
+      .then(response => {
+        response
+      })
+      .catch(error => {
+        console.log(error)
+      });*/
+    }
 
   }
 };
