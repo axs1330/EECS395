@@ -259,11 +259,11 @@ function parseLocationFile(filename){//TODO: Does not work, need to be fixed
             var curr_location = lines[i].split(',');
             var tmpLocation = 
              {//Building	Lat	Long	Address	Google Maps Name
-               building = curr_location[0],
-               name = curr_location[1],
-               salary = curr_location[2],
-               gender = curr_location[3],
-               category = curr_location[4],
+               building: curr_location[0],
+               name: curr_location[1],
+               salary: curr_location[2],
+               gender: curr_location[3],
+               category: curr_location[4],
              }
              locations.push(tmpLocation);
           }

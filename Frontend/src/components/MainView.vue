@@ -37,7 +37,7 @@
       <template v-slot:activator="{ on }">
         <v-btn outlined fab small v-on="on" color="primary">add</v-btn>
       </template>
-      <MeetingAddModal v-on:close-modal="mdialog = false"/>
+      <MeetingAddModal v-on:close-modal="mdialog = false" v-on:send-meeting="sendMeetingDetails"/>
     </v-dialog>
   </v-card>
 </template>
@@ -45,7 +45,7 @@
 <script>
 import MeetingAddModal from "./MeetingAddModal.vue";
 import MemberAddModal from "./MemberAddModal.vue";
-//import {HTTP} from "../http-common.js";
+import {HTTP} from "../http-common.js";
 export default {
   name: "MainView",
   components: {
@@ -81,20 +81,20 @@ export default {
       });*/
     },
 
-    sendMeetingDetails(){
-      /*  HTTP.post('/delete-meeting', {
+    sendMeetingDetails(date, start, end, duration){
+      HTTP.post('/delete-meeting', {
         groupId: this.group._id,
-        endDate: this.date,
-        startTime: ,
-        endTime: ,
-        duration:
+        endDate: date,
+        startTime: start,
+        endTime: end,
+        duration: duration
       })
       .then(response => {
         response
       })
       .catch(error => {
         console.log(error)
-      });*/
+      });
     }
 
   }

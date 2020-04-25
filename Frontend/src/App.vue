@@ -33,7 +33,7 @@ export default {
   },
   data(){
     return{
-      auth: false,
+      auth: true,
       authEmail: ""
     }
   },

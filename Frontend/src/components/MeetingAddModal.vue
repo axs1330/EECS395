@@ -84,7 +84,22 @@
             :min="start"
           ></v-time-picker>
         </v-menu>
-        <v-text-field type="time" label="length of meeting" v-model="duration"></v-text-field>
+        <v-slider
+                v-model="durationHr"
+                :tick-labels="hourLabels"
+                :max="13"
+                step="1"
+                ticks="always"
+                tick-size="4"
+              ></v-slider>
+        <v-slider
+                v-model="durationMn"
+                :tick-labels="minLabels"
+                :max="3"
+                step="1"
+                ticks="always"
+                tick-size="4"
+        ></v-slider>
       </v-form>
       <v-card-actions>
               <v-btn color="blue darken-1" text v-on:click="$emit('close-modal')">Close</v-btn>
@@ -105,7 +120,10 @@ export default {
       date: null,
       menu: false,
       menu2: false,
-      duration: ""
+      durationHr: "",
+      durationMn: "",
+      hourLabels: ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'],
+      minLabels: ['00', '15', '30', '45']
     };
   },
 
@@ -114,9 +132,8 @@ export default {
       var date = new Date(this.date);
       var startres = this.start.concat(':00');
       var endres = this.end.concat(':00');
-      var durationres = this.duration.slice(0, -2).concat(':00');
-      console.log(date.toISOString(), startres, endres, durationres)
-      //this.$emit('send-meeting', this.date, this.start, this.end, this.duration)
+      var durationres = this.hourLabels[this.durationHr].concat(':', this.minLabels[this.durationMn], ':00');
+      this.$emit('send-meeting', date, startres, endres, durationres)
 
     }
   }
