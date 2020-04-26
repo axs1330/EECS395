@@ -1,11 +1,11 @@
 const assert = require('assert');
 const fs = require('fs');
-const crypto = require('crypto')
 const Promise = require('promise');
 const Express = require('express');
 const BodyParser = require("body-parser");
 const MongoClient = require('mongodb').MongoClient;
 const ObjectId = require('mongodb').ObjectID;
+const rp = require('request-promise');
 const {google} = require('googleapis');
 const MapsClient = require("@googlemaps/google-maps-services-js").Client;
 
@@ -32,7 +32,15 @@ var geocodingKey;
 var usersCursor, groupsCursor;
 // var currentUser;
 // TODO change this to your own email for convenience, remove after finished developing and uncomment line above
-var currentUser = 'pgw8@case.edu';
+var currentUser = 'tcj16@case.edu';
+
+// TODO store these in db or fs instead
+var meetingLocations = [
+  "11038 Bellflower Rd, Cleveland, OH 44106",
+  "11451 Juniper Dr, Cleveland, OH 44106",
+  "11055 Euclid Ave, Cleveland, OH 44106",
+  "2095 Martin Luther King Jr Dr, Cleveland, OH 44106"
+];
 
 app.use(BodyParser.json());
 app.use(BodyParser.urlencoded({ extended: true }));
@@ -115,8 +123,8 @@ app.get("/auth", (req, res) => {
   oAuth2Client.getToken(code, (err, token) => {
     if (err) return console.error(err);
     oAuth2Client.setCredentials(token);
+
     // Store refresh token with corresponding user
-    // TODO encrypt token
     google.oauth2("v2").userinfo.v2.me.get({auth: oAuth2Client}, (err, profile) => {
       if (err) return console.error(err);
       createOrUpdateCurrentUser(profile.data, token, (err, result) => {
@@ -195,15 +203,16 @@ function googleCalendarAPI(refreshToken) {
 /**
  * Returns a promise that returns all events of all members in the group with the given ID.
  * @param {string} groupId the ID of the group from which to retrieve events
- * @param {string} endDate the latest date/time to retrieve events, formatted as an ISO string
+ * @param {string} startTime the earliest date/time to retrieve events, formatted as an ISO string
+ * @param {string} endTime the latest date/time to retrieve events, formatted as an ISO string
  */
-function allMemberEventsOfGroup(groupId, endDate) {
+function allMemberEventsOfGroup(groupId, startTime, endTime) {
   return usersOfGroup(groupId)
   .then(users => {
     return Promise.all(users.map(u => calendarsOfUser(u)))
     .then(calendarLists => {
       return Promise.all(calendarLists.map((calendars, i) => {
-        return Promise.all(calendars.map(c => eventsFromCalendar(c, users[i], endDate)))
+        return Promise.all(calendars.map(c => eventsFromCalendar(c, users[i], startTime, endTime)))
         .then(events => [].concat(...events));
       }));
     })
@@ -254,9 +263,10 @@ function calendarsOfUser(user) {
  * Returns a promise that returns upcoming events from the given calendar of the given user.
  * @param {*} calendar the Google calendar from which to retrieve events
  * @param {*} user the user whose token is to be used
- * @param {string} endDate the latest date/time to retrieve events, formatted as an ISO string
+ * @param {string} startTime the earliest date/time to retrieve events, formatted as an ISO string
+ * @param {string} endTime the latest date/time to retrieve events, formatted as an ISO string
  */
-function eventsFromCalendar(calendar, user, endDate) {
+function eventsFromCalendar(calendar, user, startTime, endTime) {
   const refreshToken = user.token;
   if (!refreshToken) {
     console.error(`Could not find refresh token for user ${user._id}`);
@@ -266,10 +276,8 @@ function eventsFromCalendar(calendar, user, endDate) {
 
   return googleCalendar.events.list({
     calendarId: calendar.id,
-    timeMin: (new Date()).toISOString(),
-    // TODO remove this after standardizing scheduling algorithm
-    timeMax: (new Date(new Date().getTime() + (1000 * 60 * 60 * 24 * 28))).toISOString(),
-    // timeMax: endDate,
+    timeMin: startTime,
+    timeMax: endTime,
     singleEvents: true,
     orderBy: 'startTime'
   })
@@ -368,28 +376,80 @@ function removeGroupFromUsers(group, userIds) {
 /**
  * Returns a promise that returns a list of possible meeting times from the scheduler.
  * @param {string} meetingParams.groupId the ID of the group
- * @param {string} meetingParams.endDate the latest date of the meeting, formatted as an ISO string
- * @param {string} meetingParams.startTime the earliest time to schedule the meeting, formatted "hh:mm:ss"
- * @param {string} meetingParams.endTime the latest time to schedule the meeting, formatted "hh:mm:ss"
+ * @param {string} meetingParams.startTime the earliest date/time of the meeting, formatted as an ISO string
+ * @param {string} meetingParams.endTime the latest date/time of the meeting, formatted as an ISO string
  * @param {string} meetingParams.duration the duration of the meeting, formatted "hh:mm:ss"
- * @param {string} meetingParams.interval the interval at which to test meeting times, formatted "hh:mm:ss"
  */
 function scheduleMeeting(meetingParams) {
-  return allMemberEventsOfGroup(meetingParams.groupId, meetingParams.endDate)
+  return allMemberEventsOfGroup(meetingParams.groupId, meetingParams.startTime, meetingParams.endTime)
   .then(memberEvents => {
     return new Promise((resolve, reject) => {
       resolve(
-        scheduler.naiveSchedule(
+        scheduler.naiveScheduleWithLocation(
           memberEvents,
-          meetingParams.endDate,
           meetingParams.startTime,
           meetingParams.endTime,
           meetingParams.duration,
-          meetingParams.interval)
+          '00:05:00')
       );
     });
   })
+  .then(results => {
+    const {times, prev_locations, after_locations} = results;
+    // TODO maybe first go by valid address count?
+    return Promise.all([
+      times,
+      closestMeetingLocation(prev_locations),
+      closestMeetingLocation(after_locations)
+    ]);
+  })
+  .then(([times, prev, after]) => {
+    const finalLocation = prev.distance < after.distance ? prev : after;
+    return {
+      startTime: times[2].concat('T', times[0], '-05:00'),
+      endTime: times[2].concat('T', times[1], '-05:00'),
+      location: finalLocation.location
+    }
+  })
   .catch(err => console.error(err));
+}
+
+async function closestMeetingLocation(locations) {
+  let optimalMeeting = {
+    location: null,
+    distance: Infinity
+  };
+  const validLocations = await locations.filter(l => l !== null && l !== 'undefined');
+  if (!validLocations.length) return optimalMeeting;
+
+  const candidateCoordinates = await Promise.all(meetingLocations.map(l => address2Coordinates(l)));
+  const locationCoordinates = await Promise.all(validLocations.map(l => address2Coordinates(l)));
+
+  console.log(candidateCoordinates);
+  console.log(locationCoordinates);
+
+  let minIndex = 0;
+  let minDistance = Infinity;
+  for (let i in candidateCoordinates) {
+    let candidate = candidateCoordinates[i];
+    let distanceSum = 0;
+    for (let j in locationCoordinates) {
+      let location = locationCoordinates[j];
+      distanceSum += distance(candidate, location);
+    }
+    if (distanceSum < minDistance) {
+      minIndex = i;
+      minDistance = distanceSum;
+    }
+  }
+
+  optimalMeeting.location = meetingLocations[minIndex];
+  optimalMeeting.distance = minDistance;
+  return optimalMeeting;
+}
+
+function distance(l1, l2, scale = 1000) {
+  return Math.sqrt((scale * (l1.lat - l2.lat))^2 + (scale * (l1.lng - l2.lng))^2);
 }
 
 // TODO 
@@ -481,6 +541,24 @@ async function deleteMeeting(groupId, meetingId) {
   .catch(err => console.error(err));
 }
 
+const GEO_URL_BASE = 'https://maps.googleapis.com/maps/api/geocode/json?address=';
+
+function address2Coordinates(address) {
+  const formattedAddress = address.replace(' ', '+');
+  const url = GEO_URL_BASE.concat(formattedAddress, '&key=', geocodingKey);
+  const options = {
+    uri: url,
+    headers: {
+        'User-Agent': 'Request-Promise'
+    },
+    json: true
+  };
+
+  return rp(options)
+  .then(res => res.results[0].geometry.location)
+  .catch(err => console.error(err));
+}
+
 ////////// POST ROUTES ////////////////////////////////////////////////////////////////////////////
 
 // TODO delete after finished debugging server
@@ -495,14 +573,13 @@ app.get("/home", (req, res) => {
   // this format does not reflect the intended formatting for this function
   const meetingParams = {
     groupId: '5ea1e09ac3b7ed2a60d398f3',
-    endDate: '2020-04-21',
-    startTime: '12:00:00',
-    endTime: '14:00:00',
-    duration: '00:30:00',
+    startTime: '2020-02-19T04:30:00-05:00',
+    endTime: '2020-02-19T23:30:00-05:00',
+    duration: '00:40:00',
     interval: '00:05:00',
   };
   scheduleMeeting(meetingParams)
-  .then(meetings => res.send(meetings))
+  .then(result => res.send(result))
   .catch(err => res.status(500).send(err));
 });
 

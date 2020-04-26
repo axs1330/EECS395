@@ -1,7 +1,7 @@
 const fs = require('fs');
 
-let scheduleFileList = ['Backend\\example-events2.json']
-let default_location_file = 'Supporting Documents\Meeting Locations'
+// let scheduleFileList = ['Backend\\example-events2.json']
+// let default_location_file = 'Supporting Documents\Meeting Locations'
 /*
 let rawdata = fs.readFileSync('example-events2.json');
 let student = JSON.parse(rawdata);
@@ -10,13 +10,13 @@ console.log(student[0].start.dateTime);
 let month_days = [31,29,31,30,31,31,30,31,30,31] 
 console.log(getStartTime(student[0].start.dateTime)) */
 
- let master_schedules = parseScheduleFiles(scheduleFileList)
+//  let master_schedules = parseScheduleFiles(scheduleFileList)
 // console.log(getStartTime(master_schedules[0][0]))
 // console.log(getEndTime(master_schedules[0][0]))
 // console.log(getEventDate(master_schedules[0][0]))
 
 // console.log(naiveSchedule(master_schedules, '2020-02-19', '12:00:00', '14:00:00', '00:40:00', '00:05:00'))
-naiveScheduleWithLocation(master_schedules, '2020-02-19T04:30:00',  '2020-02-19T23:30:00', '00:40:00','00:05:00', null)
+// naiveScheduleWithLocation(master_schedules, '2020-02-19T04:30:00',  '2020-02-19T23:30:00', '00:40:00','00:05:00', null)
 
 function parseScheduleFiles(scheduleFileList){
     let master_schedules = []
@@ -31,7 +31,7 @@ function parseScheduleFiles(scheduleFileList){
 }
 
 
-function naiveScheduleWithLocation(schedules, start, end, event_length, inteval, location_file){
+function naiveScheduleWithLocation(schedules, start, end, event_length, inteval){
     /*
         Params:
         Schedules: an array of parsed schedules 
@@ -138,8 +138,8 @@ function naiveScheduleWithLocation(schedules, start, end, event_length, inteval,
         for(var i = 0; i < schedules.length; i++){
                 // currently iterating every person's calander
                 let current_schedule = schedules[i];
-                let cpel = 'Locationp'
-                let cael = 'Locationa'
+                let cpel = null;
+                let cael = null;
                 let closest_previous = '00:00:00'
                 let closest_after = '23:59:59'
                 for(var j = 0; j < current_schedule.length; j++){
@@ -191,7 +191,11 @@ function naiveScheduleWithLocation(schedules, start, end, event_length, inteval,
             //TODO for tim: These should be lists of locations of events just before and after. 
             // array lenghs = number of schedulers considered
             // 'undefined' means that no event is before and after the scheduled event for this day
-       return([best_start_time, time_add(best_start_time, event_length), best_date])
+       return {
+           times: [best_start_time, time_add(best_start_time, event_length), best_date],
+           prev_locations: closest_prev_event_loc,
+           after_locations: closest_after_event_loc
+       };
     }
 
 function naiveSchedule(schedules, day, start, end, event_length, inteval) {
@@ -459,4 +463,4 @@ function time_add(time, increment){
    return finalTime
 }
 
-module.exports.naiveSchedule = naiveSchedule;
+module.exports.naiveScheduleWithLocation = naiveScheduleWithLocation;
