@@ -8,7 +8,6 @@
           v-model="datemenu"
           :close-on-content-click="false"
           :nudge-right="40"
-          :return-value.sync="time"
           transition="scale-transition"
           offset-y
           max-width="290px"
@@ -34,7 +33,7 @@
           v-model="menu"
           :close-on-content-click="false"
           :nudge-right="40"
-          :return-value.sync="time"
+          :return-value.sync="start"
           transition="scale-transition"
           offset-y
           max-width="290px"
@@ -58,11 +57,11 @@
           ></v-time-picker>
         </v-menu>
         <v-menu
-          ref="menu"
+          ref="menu2"
           v-model="menu2"
           :close-on-content-click="false"
           :nudge-right="40"
-          :return-value.sync="time"
+          :return-value.sync="end"
           transition="scale-transition"
           offset-y
           max-width="290px"
@@ -85,8 +84,27 @@
             :min="start"
           ></v-time-picker>
         </v-menu>
-        <v-select label="length of meeting" :items="durations"></v-select>
+        <v-slider
+                v-model="durationHr"
+                :tick-labels="hourLabels"
+                :max="13"
+                step="1"
+                ticks="always"
+                tick-size="4"
+              ></v-slider>
+        <v-slider
+                v-model="durationMn"
+                :tick-labels="minLabels"
+                :max="3"
+                step="1"
+                ticks="always"
+                tick-size="4"
+        ></v-slider>
       </v-form>
+      <v-card-actions>
+              <v-btn color="blue darken-1" text v-on:click="$emit('close-modal')">Close</v-btn>
+              <v-btn color="blue darken-1" text @click="sendMeetingInfo">Create Meeting</v-btn>
+            </v-card-actions>
     </v-card>
   </div>
 </template>
@@ -102,14 +120,20 @@ export default {
       date: null,
       menu: false,
       menu2: false,
-      durations: ["one hour", "two hours", "three hours"],
-      duration: null
+      durationHr: "",
+      durationMn: "",
+      hourLabels: ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'],
+      minLabels: ['00', '15', '30', '45']
     };
   },
 
   methods: {
     sendMeetingInfo(){
-      this.$emit('send-meeting', this.date, this.start, this.end, this.duration)
+      var date = new Date(this.date);
+      var startres = this.start.concat(':00');
+      var endres = this.end.concat(':00');
+      var durationres = this.hourLabels[this.durationHr].concat(':', this.minLabels[this.durationMn], ':00');
+      this.$emit('send-meeting', date, startres, endres, durationres)
 
     }
   }

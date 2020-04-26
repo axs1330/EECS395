@@ -4,24 +4,52 @@
         <v-toolbar-title color="white">CampusScheduler</v-toolbar-title>
     </v-app-bar>
     <v-content>
-    <v-container fluid class="fill-height">
-      <v-row class="fill-height">
-        <v-col fill-height>
-          <SideBarView/>
-        </v-col>
-      </v-row>
-    </v-container>
+      <v-container fluid class="fill-height">
+        <section v-if="auth">
+          <v-row class="fill-height">
+            <v-col fill-height>
+              <SideBarView/>
+            </v-col>
+          </v-row>
+        </section>
+        <section v-else>
+          <v-text-field type="email" label="Enter your Email address" v-model="authEmail">
+          </v-text-field>
+          <v-btn fab dark color="primary" @click="sendAuthEmail"><v-icon>mdi-send</v-icon></v-btn>
+        </section>
+      </v-container>
     </v-content>
   </v-app>
 </template>
 
 <script>
 import SideBarView from "./components/SideBarView";
+import {HTTP} from "./http-common.js";
 
 export default {
   name: "App",
   components: {
     SideBarView
+  },
+  data(){
+    return{
+      auth: true,
+      authEmail: ""
+    }
+  },
+  methods:{
+    sendAuthEmail(){
+      HTTP.get('/api/authorize', {
+        email: this.authEmail
+      })
+      .then(response => {
+        response
+        this.auth=true;
+      })
+      .catch(error => {
+        console.log(error)
+      });
+    }
   }
 };
 </script>
