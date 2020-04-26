@@ -158,8 +158,8 @@ export default {
     sendMeetingInfo(){
       var endDate = new Date(this.endDate);
       var startDate = new Date(this.endDate);
-      var startres = this.start.concat(':00 -05:00');
-      var endres = this.end.concat(':00 -05:00');
+      var startres = this.start.concat(':00-05:00');
+      var endres = this.end.concat(':00-05:00');
       var durationres = this.hourLabels[this.durationHr].concat(':', this.minLabels[this.durationMn], ':00');
       this.$emit('send-meeting', startDate.toISOString(), endDate.toISOString(), startres, endres, durationres)
 

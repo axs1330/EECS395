@@ -575,17 +575,16 @@ app.get("/home", (req, res) => {
   //   location: '11038 Bellflower Rd, Cleveland, OH 44106'
   // };
   // createMeeting(meeting)
-  // const meetingParams = {
-  //   groupId: '5ea1e09ac3b7ed2a60d398f3',
-  //   startDate: '2020-02-19T00:00:00',
-  //   endDate: '2020-02-19T00:00:00',
-  //   startTime: '04:30:00-05:00',
-  //   endTime: '23:30:00-05:00',
-  //   duration: '00:40:00',
-  //   interval: '00:05:00',
-  // };
-  // scheduleMeeting(meetingParams)
-  groupsOfCurrentUser()
+  const meetingParams = {
+    groupId: '5ea1e09ac3b7ed2a60d398f3',
+    startDate: '2020-02-19T00:00:00',
+    endDate: '2020-02-19T00:00:00',
+    startTime: '04:30:00-05:00',
+    endTime: '23:30:00-05:00',
+    duration: '00:40:00',
+    interval: '00:05:00',
+  };
+  scheduleMeeting(meetingParams)
   .then(result => res.send(result))
   .catch(err => res.status(500).send(err));
 });
