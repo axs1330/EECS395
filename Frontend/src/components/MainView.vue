@@ -39,18 +39,23 @@
       </template>
       <MeetingAddModal v-on:close-modal="mdialog = false" v-on:send-meeting="sendMeetingDetails"/>
     </v-dialog>
+    <v-dialog persistent v-model="pMeetingDialog" width="unset">
+      <PotentialMeetingModal v-bind:meetings="potentialMeetings" v-on:close-modal="pMeetingDialog = false" v-on:confirm-meeting="confirmMeeting"/>
+    </v-dialog>
   </v-card>
 </template>
 
 <script>
 import MeetingAddModal from "./MeetingAddModal.vue";
 import MemberAddModal from "./MemberAddModal.vue";
+import PotentialMeetingModal from "./PotentialMeetingModal.vue";
 import {HTTP} from "../http-common.js";
 export default {
   name: "MainView",
   components: {
     MeetingAddModal,
-    MemberAddModal
+    MemberAddModal,
+    PotentialMeetingModal
   },
   props: ["group"],
   data() {
@@ -59,7 +64,10 @@ export default {
       mdialog: false,
       members: [],
       meetings: [],
-      meeting: 0
+      meeting: 0,
+      potentialMeetings: [],
+      pMeetingDialog: false
+
     };
   },
   mounted(){
@@ -82,7 +90,7 @@ export default {
     },
 
     sendMeetingDetails(date, start, end, duration){
-      HTTP.post('/delete-meeting', {
+      HTTP.post('/schedule-meeting', {
         groupId: this.group._id,
         endDate: date,
         startTime: start,
@@ -90,11 +98,15 @@ export default {
         duration: duration
       })
       .then(response => {
-        response
+        this.potentialMeetings = response.data,
+        this.pMeetingDialog = true
       })
       .catch(error => {
         console.log(error)
       });
+    },
+
+    confirmMeeting(){
     }
 
   }
