@@ -84,7 +84,7 @@ app.get("/", (req, res) => {
   res.redirect('/api/authorize');
 })
 
-app.get("/api/authorize", async (req, res) => {
+app.post("/api/authorize", async (req, res) => {
   currentUser = req.body.email;
   let authParams = {
     access_type: 'offline',

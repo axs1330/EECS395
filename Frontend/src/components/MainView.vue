@@ -108,7 +108,19 @@ export default {
       });
     },
 
-    confirmMeeting(){
+    confirmMeeting(meeting){
+      HTTP.POST('/create-meeting', {
+        groupId: this.group._id,
+        startTime: meeting.startTime,
+        endTime: meeting.endTime,
+        location: meeting.location.address
+      })
+      .then(response => {
+        response
+      })
+      .catch(error => {
+        console.log(error)
+      });
     }
 
   }
