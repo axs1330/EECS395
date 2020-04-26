@@ -18,6 +18,7 @@ const DATABASE_NAME = 'test';
 
 const CALENDAR_CREDENTIALS = 'credentials-calendar.json';
 const GEOCODING_API_KEY = 'api-key-geocoding.txt';
+const GEO_URL_BASE = 'https://maps.googleapis.com/maps/api/geocode/json?address=';
 
 const SCOPES = [
   'https://www.googleapis.com/auth/calendar',
@@ -78,7 +79,12 @@ app.listen(port, () => {
   console.log(`Listening on port ${port}...`);
 });
 
-app.post("/api/authorize", async (req, res) => {
+// TODO keep for debugging
+app.get("/", (req, res) => {
+  res.redirect('/api/authorize');
+})
+
+app.get("/api/authorize", async (req, res) => {
   currentUser = req.body.email;
   let authParams = {
     access_type: 'offline',
@@ -368,19 +374,23 @@ function removeGroupFromUsers(group, userIds) {
 /**
  * Returns a promise that returns a list of possible meeting times from the scheduler.
  * @param {string} meetingParams.groupId the ID of the group
- * @param {string} meetingParams.startTime the earliest date/time of the meeting, formatted as an ISO string
- * @param {string} meetingParams.endTime the latest date/time of the meeting, formatted as an ISO string
+ * @param {string} meetingParams.startDate the earliest date of the meeting, formatted "yyyy-mm-dd"
+ * @param {string} meetingParams.endDate the latest date of the meeting, formatted "yyyy-mm-dd"
+ * @param {string} meetingParams.startTime the earliest time of the meeting, formatted "hh:mm:ss"
+ * @param {string} meetingParams.endTime the latest time of the meeting, formatted "hh:mm:ss"
  * @param {string} meetingParams.duration the duration of the meeting, formatted "hh:mm:ss"
  */
 function scheduleMeeting(meetingParams) {
-  return allMemberEventsOfGroup(meetingParams.groupId, meetingParams.startTime, meetingParams.endTime)
+  const startDateTime = meetingParams.startDate.concat('T', meetingParams.startTime, '-05:00');
+  const endDateTime = meetingParams.endDate.concat('T', meetingParams.endTime, '-05:00');
+  return allMemberEventsOfGroup(meetingParams.groupId, startDateTime, endDateTime)
   .then(memberEvents => {
     return new Promise((resolve, reject) => {
       resolve(
         scheduler.naiveScheduleWithLocation(
           memberEvents,
-          meetingParams.startTime,
-          meetingParams.endTime,
+          startDateTime,
+          endDateTime,
           meetingParams.duration,
           '00:05:00')
       );
@@ -397,15 +407,18 @@ function scheduleMeeting(meetingParams) {
   })
   .then(([times, prev, after]) => {
     const finalLocation = prev.distance < after.distance ? prev : after;
-    return {
-      startTime: times[2].concat('T', times[0], '-05:00'),
-      endTime: times[2].concat('T', times[1], '-05:00'),
-      location: finalLocation.location
-    }
+    return [
+      {
+        startTime: times[2].concat('T', times[0], '-05:00'),
+        endTime: times[2].concat('T', times[1], '-05:00'),
+        location: finalLocation.location
+      }
+    ]
   })
   .catch(err => console.error(err));
 }
 
+// TODO move these to another module
 async function closestMeetingLocation(locations) {
   let optimalMeeting = {
     location: null,
@@ -432,9 +445,29 @@ async function closestMeetingLocation(locations) {
     }
   }
 
-  optimalMeeting.location = meetingLocations[minIndex];
+  optimalMeeting.location = {
+    address: meetingLocations[minIndex],
+    lat: candidateCoordinates[minIndex].lat,
+    lng: candidateCoordinates[minIndex].lng
+  };
   optimalMeeting.distance = minDistance;
   return optimalMeeting;
+}
+
+function address2Coordinates(address) {
+  const formattedAddress = address.replace(' ', '+');
+  const url = GEO_URL_BASE.concat(formattedAddress, '&key=', geocodingKey);
+  const options = {
+    uri: url,
+    headers: {
+        'User-Agent': 'Request-Promise'
+    },
+    json: true
+  };
+
+  return rp(options)
+  .then(res => res.results[0].geometry.location)
+  .catch(err => console.error(err));
 }
 
 function distance(l1, l2, scale = 1000) {
@@ -530,24 +563,6 @@ async function deleteMeeting(groupId, meetingId) {
   .catch(err => console.error(err));
 }
 
-const GEO_URL_BASE = 'https://maps.googleapis.com/maps/api/geocode/json?address=';
-
-function address2Coordinates(address) {
-  const formattedAddress = address.replace(' ', '+');
-  const url = GEO_URL_BASE.concat(formattedAddress, '&key=', geocodingKey);
-  const options = {
-    uri: url,
-    headers: {
-        'User-Agent': 'Request-Promise'
-    },
-    json: true
-  };
-
-  return rp(options)
-  .then(res => res.results[0].geometry.location)
-  .catch(err => console.error(err));
-}
-
 ////////// POST ROUTES ////////////////////////////////////////////////////////////////////////////
 
 // TODO delete after finished debugging server
@@ -559,11 +574,12 @@ app.get("/home", (req, res) => {
   //   location: '11038 Bellflower Rd, Cleveland, OH 44106'
   // };
   // createMeeting(meeting)
-  // this format does not reflect the intended formatting for this function
   // const meetingParams = {
   //   groupId: '5ea1e09ac3b7ed2a60d398f3',
-  //   startTime: '2020-02-19T04:30:00-05:00',
-  //   endTime: '2020-02-19T23:30:00-05:00',
+  //   startDate: '2020-02-19',
+  //   endDate: '2020-02-19',
+  //   startTime: '04:30:00',
+  //   endTime: '23:30:00',
   //   duration: '00:40:00',
   //   interval: '00:05:00',
   // };
