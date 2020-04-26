@@ -1,0 +1,370 @@
+[
+    {
+      "kind": "calendar#event",
+      "etag": "\"3158197468121000\"",
+      "id": "5d9h1r5v492av87eupq5jnfnvi_20200219T143000Z",
+      "status": "confirmed",
+      "htmlLink": "https://www.google.com/calendar/event?eid=NWQ5aDFyNXY0OTJhdjg3ZXVwcTVqbmZudmlfMjAyMDAyMTlUMTQzMDAwWiBjYXNlLmVkdV82MWUwaW0xMzJ0aG1sMDVqMnBwZWxuNnNya0Bn",
+      "created": "2020-01-06T21:15:35.000Z",
+      "updated": "2020-01-15T14:32:14.096Z",
+      "summary": "ENGL 398",
+      "description": " ",
+      "location": "Olin 303",
+      "creator": {
+        "email": "pgw8@case.edu"
+      },
+      "organizer": {
+        "email": "case.edu_61e0im132thml05j2ppeln6srk@group.calendar.google.com",
+        "displayName": "Classes",
+        "self": true
+      },
+      "start": {
+        "dateTime": "2020-02-19T09:30:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "end": {
+        "dateTime": "2020-02-19T10:20:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "recurringEventId": "5d9h1r5v492av87eupq5jnfnvi",
+      "originalStartTime": {
+        "dateTime": "2020-02-19T09:30:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "iCalUID": "5d9h1r5v492av87eupq5jnfnvi@google.com",
+      "sequence": 0,
+      "reminders": {
+        "useDefault": false
+      }
+    },
+    {
+      "kind": "calendar#event",
+      "etag": "\"3156690966098000\"",
+      "id": "0jmn7satutg05qd8cmj9mias5a_20200219T153500Z",
+      "status": "confirmed",
+      "htmlLink": "https://www.google.com/calendar/event?eid=MGptbjdzYXR1dGcwNXFkOGNtajltaWFzNWFfMjAyMDAyMTlUMTUzNTAwWiBjYXNlLmVkdV82MWUwaW0xMzJ0aG1sMDVqMnBwZWxuNnNya0Bn",
+      "created": "2020-01-06T21:18:03.000Z",
+      "updated": "2020-01-06T21:18:03.049Z",
+      "summary": "EECS 393",
+      "location": "White 411",
+      "creator": {
+        "email": "pgw8@case.edu"
+      },
+      "organizer": {
+        "email": "case.edu_61e0im132thml05j2ppeln6srk@group.calendar.google.com",
+        "displayName": "Classes",
+        "self": true
+      },
+      "start": {
+        "dateTime": "2020-02-19T10:35:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "end": {
+        "dateTime": "2020-02-19T11:25:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "recurringEventId": "0jmn7satutg05qd8cmj9mias5a",
+      "originalStartTime": {
+        "dateTime": "2020-02-19T10:35:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "iCalUID": "0jmn7satutg05qd8cmj9mias5a@google.com",
+      "sequence": 0,
+      "reminders": {
+        "useDefault": true
+      }
+    },
+    {
+      "kind": "calendar#event",
+      "etag": "\"3156691116868000\"",
+      "id": "08btuiusog17ei75da23ecu8vf_20200219T164000Z",
+      "status": "confirmed",
+      "htmlLink": "https://www.google.com/calendar/event?eid=MDhidHVpdXNvZzE3ZWk3NWRhMjNlY3U4dmZfMjAyMDAyMTlUMTY0MDAwWiBjYXNlLmVkdV82MWUwaW0xMzJ0aG1sMDVqMnBwZWxuNnNya0Bn",
+      "created": "2020-01-06T21:19:18.000Z",
+      "updated": "2020-01-06T21:19:18.434Z",
+      "summary": "EECS 395",
+      "location": "White 411",
+      "creator": {
+        "email": "pgw8@case.edu"
+      },
+      "organizer": {
+        "email": "case.edu_61e0im132thml05j2ppeln6srk@group.calendar.google.com",
+        "displayName": "Classes",
+        "self": true
+      },
+      "start": {
+        "dateTime": "2020-02-19T11:40:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "end": {
+        "dateTime": "2020-02-19T12:30:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "recurringEventId": "08btuiusog17ei75da23ecu8vf",
+      "originalStartTime": {
+        "dateTime": "2020-02-19T11:40:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "iCalUID": "08btuiusog17ei75da23ecu8vf@google.com",
+      "sequence": 0,
+      "reminders": {
+        "useDefault": true
+      }
+    },
+    {
+      "kind": "calendar#event",
+      "etag": "\"3158199494160000\"",
+      "id": "4ttlf4reqr5ev3suofj7tovtd2_20200219T212500Z",
+      "status": "confirmed",
+      "htmlLink": "https://www.google.com/calendar/event?eid=NHR0bGY0cmVxcjVldjNzdW9majd0b3Z0ZDJfMjAyMDAyMTlUMjEyNTAwWiBjYXNlLmVkdV82MWUwaW0xMzJ0aG1sMDVqMnBwZWxuNnNya0Bn",
+      "created": "2020-01-15T14:48:55.000Z",
+      "updated": "2020-01-15T14:49:07.080Z",
+      "summary": "Jazz",
+      "creator": {
+        "email": "pgw8@case.edu"
+      },
+      "organizer": {
+        "email": "case.edu_61e0im132thml05j2ppeln6srk@group.calendar.google.com",
+        "displayName": "Classes",
+        "self": true
+      },
+      "start": {
+        "dateTime": "2020-02-19T16:25:00-05:00"
+      },
+      "end": {
+        "dateTime": "2020-02-19T18:05:00-05:00"
+      },
+      "recurringEventId": "4ttlf4reqr5ev3suofj7tovtd2",
+      "originalStartTime": {
+        "dateTime": "2020-02-19T16:25:00-05:00"
+      },
+      "iCalUID": "4ttlf4reqr5ev3suofj7tovtd2@google.com",
+      "sequence": 0,
+      "reminders": {
+        "useDefault": true
+      }
+    },
+    {
+      "kind": "calendar#event",
+      "etag": "\"3156691710368000\"",
+      "id": "6q8s1mgs206j24mglt3s5plqi7_20200220T223000Z",
+      "status": "confirmed",
+      "htmlLink": "https://www.google.com/calendar/event?eid=NnE4czFtZ3MyMDZqMjRtZ2x0M3M1cGxxaTdfMjAyMDAyMjBUMjIzMDAwWiBjYXNlLmVkdV82MWUwaW0xMzJ0aG1sMDVqMnBwZWxuNnNya0Bn",
+      "created": "2020-01-06T21:24:15.000Z",
+      "updated": "2020-01-06T21:24:15.184Z",
+      "summary": "EECS 600",
+      "location": "White 324",
+      "creator": {
+        "email": "pgw8@case.edu"
+      },
+      "organizer": {
+        "email": "case.edu_61e0im132thml05j2ppeln6srk@group.calendar.google.com",
+        "displayName": "Classes",
+        "self": true
+      },
+      "start": {
+        "dateTime": "2020-02-20T17:30:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "end": {
+        "dateTime": "2020-02-20T20:00:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "recurringEventId": "6q8s1mgs206j24mglt3s5plqi7",
+      "originalStartTime": {
+        "dateTime": "2020-02-20T17:30:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "iCalUID": "6q8s1mgs206j24mglt3s5plqi7@google.com",
+      "sequence": 0,
+      "reminders": {
+        "useDefault": true
+      }
+    },
+    {
+      "kind": "calendar#event",
+      "etag": "\"3156690966098000\"",
+      "id": "0jmn7satutg05qd8cmj9mias5a_20200221T153500Z",
+      "status": "confirmed",
+      "htmlLink": "https://www.google.com/calendar/event?eid=MGptbjdzYXR1dGcwNXFkOGNtajltaWFzNWFfMjAyMDAyMjFUMTUzNTAwWiBjYXNlLmVkdV82MWUwaW0xMzJ0aG1sMDVqMnBwZWxuNnNya0Bn",
+      "created": "2020-01-06T21:18:03.000Z",
+      "updated": "2020-01-06T21:18:03.049Z",
+      "summary": "EECS 393",
+      "location": "White 411",
+      "creator": {
+        "email": "pgw8@case.edu"
+      },
+      "organizer": {
+        "email": "case.edu_61e0im132thml05j2ppeln6srk@group.calendar.google.com",
+        "displayName": "Classes",
+        "self": true
+      },
+      "start": {
+        "dateTime": "2020-02-21T10:35:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "end": {
+        "dateTime": "2020-02-21T11:25:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "recurringEventId": "0jmn7satutg05qd8cmj9mias5a",
+      "originalStartTime": {
+        "dateTime": "2020-02-21T10:35:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "iCalUID": "0jmn7satutg05qd8cmj9mias5a@google.com",
+      "sequence": 0,
+      "reminders": {
+        "useDefault": true
+      }
+    },
+    {
+      "kind": "calendar#event",
+      "etag": "\"3156691116868000\"",
+      "id": "08btuiusog17ei75da23ecu8vf_20200221T164000Z",
+      "status": "confirmed",
+      "htmlLink": "https://www.google.com/calendar/event?eid=MDhidHVpdXNvZzE3ZWk3NWRhMjNlY3U4dmZfMjAyMDAyMjFUMTY0MDAwWiBjYXNlLmVkdV82MWUwaW0xMzJ0aG1sMDVqMnBwZWxuNnNya0Bn",
+      "created": "2020-01-06T21:19:18.000Z",
+      "updated": "2020-01-06T21:19:18.434Z",
+      "summary": "EECS 395",
+      "location": "White 411",
+      "creator": {
+        "email": "pgw8@case.edu"
+      },
+      "organizer": {
+        "email": "case.edu_61e0im132thml05j2ppeln6srk@group.calendar.google.com",
+        "displayName": "Classes",
+        "self": true
+      },
+      "start": {
+        "dateTime": "2020-02-21T11:40:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "end": {
+        "dateTime": "2020-02-21T12:30:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "recurringEventId": "08btuiusog17ei75da23ecu8vf",
+      "originalStartTime": {
+        "dateTime": "2020-02-21T11:40:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "iCalUID": "08btuiusog17ei75da23ecu8vf@google.com",
+      "sequence": 0,
+      "reminders": {
+        "useDefault": true
+      }
+    },
+    {
+      "kind": "calendar#event",
+      "etag": "\"3158197468121000\"",
+      "id": "5d9h1r5v492av87eupq5jnfnvi_20200224T143000Z",
+      "status": "confirmed",
+      "htmlLink": "https://www.google.com/calendar/event?eid=NWQ5aDFyNXY0OTJhdjg3ZXVwcTVqbmZudmlfMjAyMDAyMjRUMTQzMDAwWiBjYXNlLmVkdV82MWUwaW0xMzJ0aG1sMDVqMnBwZWxuNnNya0Bn",
+      "created": "2020-01-06T21:15:35.000Z",
+      "updated": "2020-01-15T14:32:14.096Z",
+      "summary": "ENGL 398",
+      "description": " ",
+      "location": "Olin 303",
+      "creator": {
+        "email": "pgw8@case.edu"
+      },
+      "organizer": {
+        "email": "case.edu_61e0im132thml05j2ppeln6srk@group.calendar.google.com",
+        "displayName": "Classes",
+        "self": true
+      },
+      "start": {
+        "dateTime": "2020-02-24T09:30:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "end": {
+        "dateTime": "2020-02-24T10:20:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "recurringEventId": "5d9h1r5v492av87eupq5jnfnvi",
+      "originalStartTime": {
+        "dateTime": "2020-02-24T09:30:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "iCalUID": "5d9h1r5v492av87eupq5jnfnvi@google.com",
+      "sequence": 0,
+      "reminders": {
+        "useDefault": false
+      }
+    },
+    {
+      "kind": "calendar#event",
+      "etag": "\"3156690966098000\"",
+      "id": "0jmn7satutg05qd8cmj9mias5a_20200224T153500Z",
+      "status": "confirmed",
+      "htmlLink": "https://www.google.com/calendar/event?eid=MGptbjdzYXR1dGcwNXFkOGNtajltaWFzNWFfMjAyMDAyMjRUMTUzNTAwWiBjYXNlLmVkdV82MWUwaW0xMzJ0aG1sMDVqMnBwZWxuNnNya0Bn",
+      "created": "2020-01-06T21:18:03.000Z",
+      "updated": "2020-01-06T21:18:03.049Z",
+      "summary": "EECS 393",
+      "location": "White 411",
+      "creator": {
+        "email": "pgw8@case.edu"
+      },
+      "organizer": {
+        "email": "case.edu_61e0im132thml05j2ppeln6srk@group.calendar.google.com",
+        "displayName": "Classes",
+        "self": true
+      },
+      "start": {
+        "dateTime": "2020-02-24T10:35:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "end": {
+        "dateTime": "2020-02-24T11:25:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "recurringEventId": "0jmn7satutg05qd8cmj9mias5a",
+      "originalStartTime": {
+        "dateTime": "2020-02-24T10:35:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "iCalUID": "0jmn7satutg05qd8cmj9mias5a@google.com",
+      "sequence": 0,
+      "reminders": {
+        "useDefault": true
+      }
+    },
+    {
+      "kind": "calendar#event",
+      "etag": "\"3156691116868000\"",
+      "id": "08btuiusog17ei75da23ecu8vf_20200224T164000Z",
+      "status": "confirmed",
+      "htmlLink": "https://www.google.com/calendar/event?eid=MDhidHVpdXNvZzE3ZWk3NWRhMjNlY3U4dmZfMjAyMDAyMjRUMTY0MDAwWiBjYXNlLmVkdV82MWUwaW0xMzJ0aG1sMDVqMnBwZWxuNnNya0Bn",
+      "created": "2020-01-06T21:19:18.000Z",
+      "updated": "2020-01-06T21:19:18.434Z",
+      "summary": "EECS 395",
+      "location": "White 411",
+      "creator": {
+        "email": "pgw8@case.edu"
+      },
+      "organizer": {
+        "email": "case.edu_61e0im132thml05j2ppeln6srk@group.calendar.google.com",
+        "displayName": "Classes",
+        "self": true
+      },
+      "start": {
+        "dateTime": "2020-02-24T11:40:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "end": {
+        "dateTime": "2020-02-24T12:30:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "recurringEventId": "08btuiusog17ei75da23ecu8vf",
+      "originalStartTime": {
+        "dateTime": "2020-02-24T11:40:00-05:00",
+        "timeZone": "America/New_York"
+      },
+      "iCalUID": "08btuiusog17ei75da23ecu8vf@google.com",
+      "sequence": 0,
+      "reminders": {
+        "useDefault": true
+      }
+    }
+  ]
