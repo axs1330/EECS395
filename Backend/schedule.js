@@ -188,6 +188,9 @@ function naiveScheduleWithLocation(schedules, start, end, event_length, inteval,
             console.log(closest_after_event_time)
             console.log(closest_prev_event_loc)
             console.log(closest_after_event_loc)
+            //TODO for tim: These should be lists of locations of events just before and after. 
+            // array lenghs = number of schedulers considered
+            // 'undefined' means that no event is before and after the scheduled event for this day
        return([best_start_time, time_add(best_start_time, event_length), best_date])
     }
 
