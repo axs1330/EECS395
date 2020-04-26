@@ -30,9 +30,9 @@ var app = Express();
 var oAuth2Client;
 var geocodingKey;
 var usersCursor, groupsCursor;
-// var currentUser;
+var currentUser;
 // TODO change this to your own email for convenience, remove after finished developing and uncomment line above
-var currentUser = 'tcj16@case.edu';
+// var currentUser = 'tcj16@case.edu';
 
 // TODO store these in db or fs instead
 var meetingLocations = [
@@ -78,17 +78,8 @@ app.listen(port, () => {
   console.log(`Listening on port ${port}...`);
 });
 
-app.get("/", (req, res) => {
-  // TODO
-  /*
-  - have the user enter their email address
-  - button will send the email to /api/authorize
-  */
-  res.redirect('/api/authorize');
-});
-
-app.get("/api/authorize", async (req, res) => {
-  // currentUser = req.body.email;
+app.post("/api/authorize", async (req, res) => {
+  currentUser = req.body.email;
   let authParams = {
     access_type: 'offline',
     scope: SCOPES,
@@ -112,7 +103,8 @@ app.get("/api/authorize", async (req, res) => {
   }
 
   const authUrl = oAuth2Client.generateAuthUrl(authParams);
-  res.redirect(authUrl);
+  res.send(authUrl)
+  // res.redirect(authUrl);
 });
 
 app.get("/auth", (req, res) => {
@@ -425,9 +417,6 @@ async function closestMeetingLocation(locations) {
   const candidateCoordinates = await Promise.all(meetingLocations.map(l => address2Coordinates(l)));
   const locationCoordinates = await Promise.all(validLocations.map(l => address2Coordinates(l)));
 
-  console.log(candidateCoordinates);
-  console.log(locationCoordinates);
-
   let minIndex = 0;
   let minDistance = Infinity;
   for (let i in candidateCoordinates) {
@@ -571,14 +560,15 @@ app.get("/home", (req, res) => {
   // };
   // createMeeting(meeting)
   // this format does not reflect the intended formatting for this function
-  const meetingParams = {
-    groupId: '5ea1e09ac3b7ed2a60d398f3',
-    startTime: '2020-02-19T04:30:00-05:00',
-    endTime: '2020-02-19T23:30:00-05:00',
-    duration: '00:40:00',
-    interval: '00:05:00',
-  };
-  scheduleMeeting(meetingParams)
+  // const meetingParams = {
+  //   groupId: '5ea1e09ac3b7ed2a60d398f3',
+  //   startTime: '2020-02-19T04:30:00-05:00',
+  //   endTime: '2020-02-19T23:30:00-05:00',
+  //   duration: '00:40:00',
+  //   interval: '00:05:00',
+  // };
+  // scheduleMeeting(meetingParams)
+  groupsOfCurrentUser()
   .then(result => res.send(result))
   .catch(err => res.status(500).send(err));
 });

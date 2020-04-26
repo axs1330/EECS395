@@ -6,11 +6,14 @@
     <v-content>
       <v-container fluid class="fill-height">
         <section v-if="auth">
-          <v-row class="fill-height">
+        <v-row class="fill-height">
             <v-col fill-height>
               <SideBarView/>
             </v-col>
           </v-row>
+        </section>
+        <section v-else-if="url">
+          <a :href="this.url">Click this link to sign in.</a>
         </section>
         <section v-else>
           <v-text-field type="email" label="Enter your Email address" v-model="authEmail">
@@ -33,18 +36,26 @@ export default {
   },
   data(){
     return{
-      auth: true,
+      url: null,
+      auth: false,
       authEmail: ""
     }
   },
   methods:{
     sendAuthEmail(){
-      HTTP.get('/api/authorize', {
+      HTTP.post('/api/authorize', {
         email: this.authEmail
       })
       .then(response => {
-        response
-        this.auth=true;
+        this.url = response.data;
+
+        // TODO
+        // i think that the google sign-in flow can only be configured to redirect to some route on the server
+        // so there's currently no way for the frontend to initiate a http request for user group data
+        // the only way the server response data is displayed correctly is when the server sends a response and the frontend unknowingly receives it
+        // if there is a way for the frontend to listen for the next incoming http response and then call a method, this can be solved
+        // uncommenting the line below gets all group info to show up, but completely skips the sign-in process
+        // this.auth = true;
       })
       .catch(error => {
         console.log(error)
