@@ -109,11 +109,18 @@ export default {
     },
 
     confirmMeeting(meeting){
-      HTTP.POST('/create-meeting', {
+      var ad;
+      if(meeting.location == null){
+        ad = null;
+      }
+      else{
+        ad = meeting.location.address;
+      }
+      HTTP.post('/create-meeting', {
         groupId: this.group._id,
         startTime: meeting.startTime,
         endTime: meeting.endTime,
-        location: meeting.location.address
+        location: ad
       })
       .then(response => {
         response

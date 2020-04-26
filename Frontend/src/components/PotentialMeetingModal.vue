@@ -4,13 +4,13 @@
       <v-card-title class="headline">Add a Meeting</v-card-title>
       <v-card-text>
         <v-tabs vertical>
-          <v-tab v-for="(meeting, i) in meetings" v-bind:key="meeting.id">
-            <p>Meeting {{i}}</p>
+          <v-tab v-for="(meeting, i) in meetings" v-bind:key="meeting.startTime" class="text-center">
+            Meeting {{i}}
           </v-tab>
-          <v-tabs-items v-model="mIndex" vertical>
-            <p>Start Time: {{new Date(meeting.startTime).toString()}}</p>
-            <p>End Time: {{new Date(meeting.endTime).toString()}}</p>
-            <p>Location: {{meeting.location.address}}</p>
+          <v-tabs-items v-model="meeting" vertical>
+            <p>Start Time: {{Date(meeting.startTime).toString()}}</p>
+            <p>End Time: {{Date(meeting.endTime).toString()}}</p>
+            <p v-if="meeting.location != null">Location: {{meeting.location.address}}</p>
           </v-tabs-items>
         </v-tabs>
       </v-card-text>
@@ -28,13 +28,13 @@ export default {
   props: ["meetings"],
   data() {
     return {
-      mIndex: 0
+      meeting: 0
     };
   },
 
   methods: {
     confirmMeeting(){
-      this.$emit('confirm-meeting', this.mIndex)
+      this.$emit('confirm-meeting', this.meeting)
 
     }
   }
