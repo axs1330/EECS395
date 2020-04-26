@@ -32,8 +32,6 @@ var oAuth2Client;
 var geocodingKey;
 var usersCursor, groupsCursor;
 var currentUser;
-// TODO change this to your own email for convenience, remove after finished developing and uncomment line above
-// var currentUser = 'tcj16@case.edu';
 
 // TODO store these in db or fs instead
 var meetingLocations = [
@@ -86,6 +84,8 @@ app.get("/", (req, res) => {
 
 app.post("/api/authorize", async (req, res) => {
   currentUser = req.body.email;
+  // TODO remove below after debugging server
+  // currentUser = 'tcj16@case.edu';
   let authParams = {
     access_type: 'offline',
     scope: SCOPES,
@@ -374,15 +374,18 @@ function removeGroupFromUsers(group, userIds) {
 /**
  * Returns a promise that returns a list of possible meeting times from the scheduler.
  * @param {string} meetingParams.groupId the ID of the group
- * @param {string} meetingParams.startDate the earliest date of the meeting, formatted "yyyy-mm-dd"
- * @param {string} meetingParams.endDate the latest date of the meeting, formatted "yyyy-mm-dd"
- * @param {string} meetingParams.startTime the earliest time of the meeting, formatted "hh:mm:ss"
- * @param {string} meetingParams.endTime the latest time of the meeting, formatted "hh:mm:ss"
+ * @param {string} meetingParams.startDate the earliest date of the meeting, formatted as an ISO string
+ * @param {string} meetingParams.endDate the latest date of the meeting, formatted as an ISO string
+ * @param {string} meetingParams.startTime the earliest time of the meeting, formatted "hh:mm:ss-hh:mm"
+ * @param {string} meetingParams.endTime the latest time of the meeting, formatted "hh:mm:ss-hh:mm"
  * @param {string} meetingParams.duration the duration of the meeting, formatted "hh:mm:ss"
  */
 function scheduleMeeting(meetingParams) {
-  const startDateTime = meetingParams.startDate.concat('T', meetingParams.startTime, '-05:00');
-  const endDateTime = meetingParams.endDate.concat('T', meetingParams.endTime, '-05:00');
+  const formattedStartDate = meetingParams.startDate.split('T')[0];
+  const formattedEndDate = meetingParams.startDate.split('T')[0];
+  const startDateTime = formattedStartDate.concat('T', meetingParams.startTime);
+  const endDateTime = formattedEndDate.concat('T', meetingParams.endTime);
+
   return allMemberEventsOfGroup(meetingParams.groupId, startDateTime, endDateTime)
   .then(memberEvents => {
     return new Promise((resolve, reject) => {
@@ -459,9 +462,7 @@ function address2Coordinates(address) {
   const url = GEO_URL_BASE.concat(formattedAddress, '&key=', geocodingKey);
   const options = {
     uri: url,
-    headers: {
-        'User-Agent': 'Request-Promise'
-    },
+    headers: { 'User-Agent': 'Request-Promise' },
     json: true
   };
 
@@ -576,10 +577,10 @@ app.get("/home", (req, res) => {
   // createMeeting(meeting)
   // const meetingParams = {
   //   groupId: '5ea1e09ac3b7ed2a60d398f3',
-  //   startDate: '2020-02-19',
-  //   endDate: '2020-02-19',
-  //   startTime: '04:30:00',
-  //   endTime: '23:30:00',
+  //   startDate: '2020-02-19T00:00:00',
+  //   endDate: '2020-02-19T00:00:00',
+  //   startTime: '04:30:00-05:00',
+  //   endTime: '23:30:00-05:00',
   //   duration: '00:40:00',
   //   interval: '00:05:00',
   // };
