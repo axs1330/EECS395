@@ -3,21 +3,24 @@ const fs = require('fs');
 // let scheduleFileList = ['Backend\\example-events2.json']
 // let default_location_file = 'Supporting Documents\Meeting Locations'
 /*
+let scheduleFileList = ['example-events2.json']
+let default_location_file = 'Supporting Documents\Meeting Locations'
+
 let rawdata = fs.readFileSync('example-events2.json');
 let student = JSON.parse(rawdata);
 console.log(student[0].start.dateTime);
 
 let month_days = [31,29,31,30,31,31,30,31,30,31] 
-console.log(getStartTime(student[0].start.dateTime)) */
+//console.log(getStartTime(student[0].start.dateTime));
 
-//  let master_schedules = parseScheduleFiles(scheduleFileList)
-// console.log(getStartTime(master_schedules[0][0]))
-// console.log(getEndTime(master_schedules[0][0]))
-// console.log(getEventDate(master_schedules[0][0]))
+let master_schedules = parseScheduleFiles(scheduleFileList)
+console.log(getStartTime(master_schedules[0][0]))
+console.log(getEndTime(master_schedules[0][0]))
+console.log(getEventDate(master_schedules[0][0]))
 
-// console.log(naiveSchedule(master_schedules, '2020-02-19', '12:00:00', '14:00:00', '00:40:00', '00:05:00'))
-// naiveScheduleWithLocation(master_schedules, '2020-02-19T04:30:00',  '2020-02-19T23:30:00', '00:40:00','00:05:00', null)
-
+//console.log(naiveSchedule(master_schedules, '2020-02-19', '12:00:00', '14:00:00', '00:40:00', '00:05:00'))
+naiveScheduleWithLocation(master_schedules, '2020-02-19T04:30:00',  '2020-02-19T23:30:00', '00:40:00','00:05:00', null)
+*/
 function parseScheduleFiles(scheduleFileList){
     let master_schedules = []
     for(let i = 0; i < scheduleFileList.length; i++){
@@ -367,7 +370,16 @@ function date_diff(date1, date2){
    diff += (year1 - year2) * 366
    let month1 = parseInt(date1.substring(5,7))
    let month2 = parseInt(date2.substring(5,7))
-   diff += (month1 - month2) * day_per_month[month1-1]
+   if(month1-month2 > 0) {
+       for (let i = 0; i < month1-month2; i ++) {
+        diff += parseInt(day_per_month[(month2+i-1)]);
+       }
+   }
+   if(month2-month1 > 0) {
+    for (let i = 0; i < month2-month1; i ++){
+    diff -= parseInt(day_per_month[(month1+i-1)]);
+    }
+    }
    let day1 = parseInt(date1.substring(8))
    let day2 = parseInt(date2.substring(8))
    diff += day1 - day2
@@ -382,7 +394,7 @@ function date_inc(date){
     let day = parseInt(date.substring(8))
     let month = parseInt(date.substring(5,7))
     let year = parseInt(date.substring(0,4))
-    if (day + 1 == day_per_month[month - 1]){
+    if (day + 1 > day_per_month[month - 1]){
         if(month + 1 == 13){
             year += 1
             month = 1
@@ -402,6 +414,7 @@ function date_inc(date){
         output = output + "-";
     }else{
         output = output + month;
+        output = output + "-";
     }  
     if(day < 10){
         output = output + "0" + day;
@@ -464,3 +477,16 @@ function time_add(time, increment){
 }
 
 module.exports.naiveScheduleWithLocation = naiveScheduleWithLocation;
+module.exports.getEndTimeTest = getEndTime;
+module.exports.parseScheduleFilesTest = parseScheduleFiles;
+module.exports.naiveScheduleTest = naiveSchedule;
+module.exports.getStartTimeTest = getStartTime;
+module.exports.getLocationTest = getLocation;
+module.exports.getEventDateTest = getEventDate;
+module.exports.getTimeTest = getTime;
+module.exports.getDateTest = getDate;
+module.exports.time_addTest = time_add;
+module.exports.time_diffTest = time_diff;
+module.exports.earlierTest = earlier;
+module.exports.date_diffTest = date_diff;
+module.exports.date_incTest = date_inc;
