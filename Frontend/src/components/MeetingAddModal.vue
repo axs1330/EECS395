@@ -4,6 +4,31 @@
       <v-card-title class="headline">Add a Meeting</v-card-title>
       <v-form>
         <v-menu
+                  ref="startDateMenu"
+                  v-model="startDateMenu"
+                  :close-on-content-click="false"
+                  :nudge-right="40"
+                  transition="scale-transition"
+                  offset-y
+                  max-width="290px"
+                  min-width="290px"
+                >
+                  <template v-slot:activator="{ on }">
+                    <v-text-field
+                      v-model="startDate"
+                      label="Meet After"
+                      prepend-icon="mdi-calendar"
+                      readonly
+                      v-on="on"
+                    ></v-text-field>
+                  </template>
+                  <v-date-picker
+                    v-if="startDateMenu"
+                    v-model="startDate"
+                    full-width
+                  ></v-date-picker>
+                </v-menu>
+        <v-menu
           ref="datemenu"
           v-model="datemenu"
           :close-on-content-click="false"
@@ -15,7 +40,7 @@
         >
           <template v-slot:activator="{ on }">
             <v-text-field
-              v-model="date"
+              v-model="endDate"
               label="Meet By"
               prepend-icon="mdi-calendar"
               readonly
@@ -24,7 +49,7 @@
           </template>
           <v-date-picker
             v-if="datemenu"
-            v-model="date"
+            v-model="endDate"
             full-width
           ></v-date-picker>
         </v-menu>
@@ -114,10 +139,12 @@ export default {
   name: "MeetingAddModal",
   data() {
     return {
+      startDateMenu: false,
       datemenu: false,
       start: null,
       end: null,
-      date: null,
+      startDate: null,
+      endDate: null,
       menu: false,
       menu2: false,
       durationHr: "",
@@ -129,11 +156,12 @@ export default {
 
   methods: {
     sendMeetingInfo(){
-      var date = new Date(this.date);
-      var startres = this.start.concat(':00');
-      var endres = this.end.concat(':00');
+      var endDate = new Date(this.endDate);
+      var startDate = new Date(this.endDate);
+      var startres = this.start.concat(':00 -05:00');
+      var endres = this.end.concat(':00 -05:00');
       var durationres = this.hourLabels[this.durationHr].concat(':', this.minLabels[this.durationMn], ':00');
-      this.$emit('send-meeting', date.toISOString(), startres, endres, durationres)
+      this.$emit('send-meeting', startDate.toISOString(), endDate.toISOString(), startres, endres, durationres)
 
     }
   }

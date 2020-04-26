@@ -8,7 +8,8 @@
             <p>Meeting {{i}}</p>
           </v-tab>
           <v-tabs-items v-model="mIndex" vertical>
-            <p>bleh</p>
+            <p>{{meeting.start}}</p>
+            <p>{{meeting.end}}</p>
           </v-tabs-items>
         </v-tabs>
       </v-card-text>

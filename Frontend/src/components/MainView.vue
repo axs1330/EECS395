@@ -89,17 +89,19 @@ export default {
       });*/
     },
 
-    sendMeetingDetails(date, start, end, duration){
+    sendMeetingDetails(startDate, endDate, start, end, duration){
       HTTP.post('/schedule-meeting', {
         groupId: this.group._id,
-        endDate: date,
+        startDate: startDate,
+        endDate: endDate,
         startTime: start,
         endTime: end,
         duration: duration
       })
       .then(response => {
         this.potentialMeetings = response.data,
-        this.pMeetingDialog = true
+        this.pMeetingDialog = true,
+        console.log(this.potentialMeetings)
       })
       .catch(error => {
         console.log(error)

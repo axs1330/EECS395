@@ -37,7 +37,7 @@ export default {
   data(){
     return{
       url: null,
-      auth: false,
+      auth: true,
       authEmail: ""
     }
   },
