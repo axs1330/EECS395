@@ -8,18 +8,14 @@ let default_location_file = 'Supporting Documents\Meeting Locations'
 
 let rawdata = fs.readFileSync('example-events2.json');
 let student = JSON.parse(rawdata);
-console.log(student[0].start.dateTime);
 
 let month_days = [31,29,31,30,31,31,30,31,30,31] 
-//console.log(getStartTime(student[0].start.dateTime));
 
 let master_schedules = parseScheduleFiles(scheduleFileList)
-console.log(getStartTime(master_schedules[0][0]))
-console.log(getEndTime(master_schedules[0][0]))
-console.log(getEventDate(master_schedules[0][0]))
 
 //console.log(naiveSchedule(master_schedules, '2020-02-19', '12:00:00', '14:00:00', '00:40:00', '00:05:00'))
-naiveScheduleWithLocation(master_schedules, '2020-02-19T04:30:00',  '2020-02-19T23:30:00', '00:40:00','00:05:00', null)
+example_range = [['00:40:00', '23:40:00'], ['01:40:00', '23:40:00'], ['02:40:00', '23:40:00']]
+naiveScheduleWithLocationAndRange(master_schedules, '2020-02-19',  '2020-02-21', example_range, '00:40:00', '00:05:00')
 */
 function parseScheduleFiles(scheduleFileList){
     let master_schedules = []
@@ -32,6 +28,206 @@ function parseScheduleFiles(scheduleFileList){
     }
     return(master_schedules)
 }
+
+function naiveScheduleWithLocationAndRange(schedules, start_date, end_date, daily_range, event_length, inteval, k){
+    /*
+        Params:
+        Schedules: an array of parsed schedules 
+        start_date:"2020-02-19"
+        end_date: "2020-03-12"
+        daily_range: a array size [days][2], [2][0] is the starting time on day 2,
+        days = end_date - start_date + 1 
+        Inteval: Search inteval for the for loop
+        k: as in topk
+        */
+    
+        /*
+        configs
+        */
+    
+       let time_eval_mode = 'squared'
+       let best_start_time = "00:00:00"
+       let best_date = ""
+       let best_utility = -10000000000
+       let current_date = start_date
+       let trial_time_end = time_add(trial_time_start, event_length)
+       let day_count = 0 
+       let topk_time = []
+       let topk_date = []
+       let topk_util = []
+       while(date_diff(end_date, current_date) >= 0){
+            let trial_time_start = daily_range[day_count][0]
+            while(time_add(trial_time_start, event_length) != false &&  time_diff(time_add(trial_time_start, event_length), daily_range[day_count][1]) < 0){
+            let trial_time_end = time_add(trial_time_start, event_length)
+            console.log("Considering: " + trial_time_start + " to " + trial_time_end)
+            let closest_previous = "00:00:00"
+            let closest_after = "23:59:59"
+            let conflict_flag = false;
+            for(var i = 0; i < schedules.length; i++){//bad SW practice TODO: fix
+                // currently iterating every person's calander
+                let current_schedule = schedules[i];
+                for(var j = 0; j < current_schedule.length; j++){
+                    //now iterating every event on that calander. 
+                    let current_event = current_schedule[j]
+                    let current_event_start = getStartTime(current_event)
+                    let current_event_end = getEndTime(current_event)
+                    if(getEventDate(current_event) != current_date){
+                        continue
+                    }
+                    if(earlier(trial_time_start, current_event_start)){//our event starts earlier than scheduled event
+                        if(!earlier(trial_time_end, current_event_start)){//our event also ends later than schduled event's start
+                            /*console.log("conflict event info:")
+                            console.log("Start time: "+ current_event_start)
+                            console.log("End time: " + current_event_end)*/
+                            conflict_flag = true;
+                        }
+                    }
+                    if(!earlier(trial_time_start, current_event_start)){//out event starts later than schuduled event
+                        if(earlier(trial_time_start, current_event_end)){//our event event starts later than scheduled end
+                            /*console.log("conflict event info:")
+                            console.log("Start time: "+ current_event_start)
+                            console.log("End time: " + current_event_end)*/
+                            conflict_flag = true;
+                        }
+                    }
+                    if(conflict_flag){
+                        break;
+                    }
+                    if(earlier(closest_previous, current_event_end) && earlier(current_event_end, trial_time_start)){
+                        closest_previous = current_event_end
+                    }
+                    if(earlier(current_event_start, closest_after) && earlier(trial_time_end, current_event_start)){
+                        closest_after = current_event_start
+                    }
+                }
+                if(conflict_flag)
+                    break;
+            }
+            if(conflict_flag){/*
+                console.log("Conflict Exists :(")*/
+            }else{//Right now we can consider location
+                let slot_utility = 0
+                if(time_eval_mode == 'squared'){
+                    slot_utility += -1 * (time_diff(trial_time_start, closest_previous) * time_diff(trial_time_start, closest_previous));
+                    slot_utility += -1 * (time_diff(closest_after, trial_time_end) * time_diff(closest_after, trial_time_end));
+                }else{
+                    slot_utility = -1 * (time_diff(trial_time_start, closest_previous) + time_diff(closest_after, trial_time_end))
+                }
+                //todo-change here
+                if(topk_time.length < k ){//doing a bubble sort because k is small , currently no deleting is ness
+                    let insertion_index = -1
+                    for(i = 0; i < topk_util.length; i++){
+                        if(slot_utility > topk_util[i]){
+                            insertion_index = i 
+                        }    
+                    }
+                    if(insertion_index>=0){
+                        topk_time.splice(insertion_index,0,best_start_time)
+                        topk_util.splice(insertion_index,0,slot_utility)
+                        topl_date.splice(insertion_index,0,current_date)
+                    }
+                }else{
+                    let insertion_index = -1
+                    for(i = 0; i < topk_util.length; i++){
+                        if(slot_utility > topk_util[i]){
+                            insertion_index = i 
+                        }    
+                    }
+                    if(insertion_index>=0){
+                        topk_time.splice(insertion_index,0,best_start_time)
+                        topk_util.splice(insertion_index,0,slot_utility)
+                        topl_date.splice(insertion_index,0,current_date)
+                        topk_time.pop
+                        topk_util.pop
+                        topk_date.pop
+                    }
+                }
+                /*
+                console.log("No conflict")
+                console.log("closest previous event at : " + closest_previous )
+                console.log("closest after evert at : " + closest_after )
+                console.log("Slot utility: " + slot_utility)*/
+                }
+                trial_time_start = time_add(trial_time_start, inteval)
+                }
+            current_date = date_inc(current_date)
+            day_count += 1
+        }
+
+        topk_return = []
+        for(i = 0; i < k; i++){
+            //now with the k best time slots, we go back and found the closest events 
+            //[best_start_time, time_add(best_start_time, event_length), best_date]
+            let best_date = topl_date[i]
+            let best_start_time = topk_time[i]
+            let best_end_time = time_add(best_start_time, event_length)
+            let closest_prev_event_time = []
+            let closest_after_event_time = []
+            let closest_prev_event_loc = []
+            let closest_after_event_loc = []
+            for(var i = 0; i < schedules.length; i++){
+                // currently iterating every person's calander
+                let current_schedule = schedules[i];
+                let cpel = null;
+                let cael = null;
+                let closest_previous = '00:00:00'
+                let closest_after = '23:59:59'
+                for(var j = 0; j < current_schedule.length; j++){
+                    //now iterating every event on that calander. 
+                    let current_event = current_schedule[j]
+                    let current_event_start = getStartTime(current_event)
+                    let current_event_end = getEndTime(current_event)
+                    if(getEventDate(current_event) != best_date){
+                        continue
+                    }
+                    if(earlier(best_start_time, current_event_start)){//our event starts earlier than scheduled event
+                        if(!earlier(best_end_time, current_event_start)){//our event also ends later than schduled event's start
+                            continue;
+                        }
+                    }
+                    if(!earlier(best_start_time, current_event_start)){//out event starts later than schuduled event
+                        if(earlier(best_start_time, current_event_end)){//our event event starts later than scheduled end
+                            continue;
+                        }
+                    }
+                    if(earlier(closest_previous, current_event_end) && earlier(current_event_end, trial_time_start)){
+                        closest_previous  = current_event_end
+                        cpel = getLocation(current_event)
+                        if(cpel == undefined){
+                            cpel = "undefined"
+                        }
+                    }
+                    if(earlier(current_event_start, closest_after) && earlier(trial_time_end, current_event_start)){
+                        closest_after  = current_event_end
+                        cael = getLocation(current_event)
+                        if(cael == undefined){
+                            cael = "undefined"
+                        }
+                    }
+                }
+                closest_prev_event_time.push(closest_previous)
+                closest_after_event_time.push(closest_after)
+                closest_prev_event_loc.push(cpel)
+                closest_after_event_loc.push(cael)
+            }
+            console.log(closest_prev_event_time)
+            console.log(closest_after_event_time)
+            console.log(closest_prev_event_loc)
+            console.log(closest_after_event_loc)
+            //TODO for tim: These should be lists of locations of events just before and after. 
+            // array lenghs = number of schedulers considered
+            // 'undefined' means that no event is before and after the scheduled event for this day
+            topk_return.push({
+                    times: [best_start_time, time_add(best_start_time, event_length), best_date],
+                    prev_locations: closest_prev_event_loc,
+                    after_locations: closest_after_event_loc,
+                    utility:best_utility
+                }
+            )
+        }
+        return topk_return
+    }
+
 
 
 function naiveScheduleWithLocation(schedules, start, end, event_length, inteval){
