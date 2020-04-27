@@ -13,7 +13,7 @@
     "dataframe-js": "^1.4.3",
     "express": "^4.17.1",
     "googleapis": "^47.0.0",
-    "jquery": "^1.12.4",
+    "jquery": "^3.5.0",
     "mocha": "^7.1.1",
     "mongodb": "^3.5.6",
     "promise": "^8.1.0",
