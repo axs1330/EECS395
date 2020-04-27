@@ -5,15 +5,12 @@
     </v-app-bar>
     <v-content>
       <v-container fluid class="fill-height">
-        <section v-if="auth">
+        <section v-if="isUserAuthenticated">
         <v-row class="fill-height">
             <v-col fill-height>
               <SideBarView/>
             </v-col>
           </v-row>
-        </section>
-        <section v-else-if="url">
-          <a :href="this.url">Click this link to sign in.</a>
         </section>
         <section v-else>
           <v-text-field type="email" label="Enter your Email address" v-model="authEmail">
@@ -35,10 +32,9 @@ export default {
     SideBarView
   },
   data(){
-    return{
-      url: null,
-      auth: false,
-      authEmail: ""
+    return {
+      isUserAuthenticated: false,
+      authEmail: null
     }
   },
   methods:{
@@ -47,7 +43,7 @@ export default {
         email: this.authEmail
       })
       .then(response => {
-        this.url = response.data;
+        window.location.href = response.data;
       })
       .catch(error => {
         console.log(error)
@@ -64,7 +60,7 @@ export default {
     .then(response => {
       this.$router.replace({ 'query': null });
       if (response.status === 200) {
-        this.auth = true;
+        this.isUserAuthenticated = true;
       }
     })
     .catch(error => console.log(error));
