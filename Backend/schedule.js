@@ -3,10 +3,10 @@ const fs = require('fs');
 // let scheduleFileList = ['Backend\\example-events2.json']
 // let default_location_file = 'Supporting Documents\Meeting Locations'
 /*
-let scheduleFileList = ['example-events2.json']
+let scheduleFileList = ['Backend\\example-events2.json']
 let default_location_file = 'Supporting Documents\Meeting Locations'
 
-let rawdata = fs.readFileSync('example-events2.json');
+let rawdata = fs.readFileSync('Backend\\example-events2.json');
 let student = JSON.parse(rawdata);
 
 let month_days = [31,29,31,30,31,31,30,31,30,31] 
@@ -15,8 +15,11 @@ let master_schedules = parseScheduleFiles(scheduleFileList)
 
 //console.log(naiveSchedule(master_schedules, '2020-02-19', '12:00:00', '14:00:00', '00:40:00', '00:05:00'))
 example_range = [['00:40:00', '23:40:00'], ['01:40:00', '23:40:00'], ['02:40:00', '23:40:00']]
-naiveScheduleWithLocationAndRange(master_schedules, '2020-02-19',  '2020-02-21', example_range, '00:40:00', '00:05:00')
+scheduler_output = naiveScheduleWithLocationAndRange(master_schedules, '2020-02-19',  '2020-02-21', example_range, '00:40:00', '00:05:00', 5)
+console.log(scheduler_output[0])
+console.log(scheduler_output[1])
 */
+
 function parseScheduleFiles(scheduleFileList){
     let master_schedules = []
     for(let i = 0; i < scheduleFileList.length; i++){
@@ -46,11 +49,7 @@ function naiveScheduleWithLocationAndRange(schedules, start_date, end_date, dail
         */
     
        let time_eval_mode = 'squared'
-       let best_start_time = "00:00:00"
-       let best_date = ""
-       let best_utility = -10000000000
        let current_date = start_date
-       let trial_time_end = time_add(trial_time_start, event_length)
        let day_count = 0 
        let topk_time = []
        let topk_date = []
@@ -115,16 +114,17 @@ function naiveScheduleWithLocationAndRange(schedules, start_date, end_date, dail
                 }
                 //todo-change here
                 if(topk_time.length < k ){//doing a bubble sort because k is small , currently no deleting is ness
-                    let insertion_index = -1
+                    let insertion_index = 0
                     for(i = 0; i < topk_util.length; i++){
+                        insertion_index = i + 1
                         if(slot_utility > topk_util[i]){
-                            insertion_index = i 
+                            break;
                         }    
                     }
                     if(insertion_index>=0){
-                        topk_time.splice(insertion_index,0,best_start_time)
+                        topk_time.splice(insertion_index,0,trial_time_start)
                         topk_util.splice(insertion_index,0,slot_utility)
-                        topl_date.splice(insertion_index,0,current_date)
+                        topk_date.splice(insertion_index,0,current_date)
                     }
                 }else{
                     let insertion_index = -1
@@ -134,9 +134,9 @@ function naiveScheduleWithLocationAndRange(schedules, start_date, end_date, dail
                         }    
                     }
                     if(insertion_index>=0){
-                        topk_time.splice(insertion_index,0,best_start_time)
+                        topk_time.splice(insertion_index,0,trial_time_start)
                         topk_util.splice(insertion_index,0,slot_utility)
-                        topl_date.splice(insertion_index,0,current_date)
+                        topk_date.splice(insertion_index,0,current_date)
                         topk_time.pop
                         topk_util.pop
                         topk_date.pop
@@ -153,13 +153,13 @@ function naiveScheduleWithLocationAndRange(schedules, start_date, end_date, dail
             current_date = date_inc(current_date)
             day_count += 1
         }
-
+        //console.log(topk_time)
         topk_return = []
-        for(i = 0; i < k; i++){
+        for(l = 0; l < k; l++){
             //now with the k best time slots, we go back and found the closest events 
             //[best_start_time, time_add(best_start_time, event_length), best_date]
-            let best_date = topl_date[i]
-            let best_start_time = topk_time[i]
+            let best_date = topk_date[l]
+            let best_start_time = topk_time[l]
             let best_end_time = time_add(best_start_time, event_length)
             let closest_prev_event_time = []
             let closest_after_event_time = []
@@ -190,14 +190,14 @@ function naiveScheduleWithLocationAndRange(schedules, start_date, end_date, dail
                             continue;
                         }
                     }
-                    if(earlier(closest_previous, current_event_end) && earlier(current_event_end, trial_time_start)){
+                    if(earlier(closest_previous, current_event_end) && earlier(current_event_end, best_start_time)){
                         closest_previous  = current_event_end
                         cpel = getLocation(current_event)
                         if(cpel == undefined){
                             cpel = "undefined"
                         }
                     }
-                    if(earlier(current_event_start, closest_after) && earlier(trial_time_end, current_event_start)){
+                    if(earlier(current_event_start, closest_after) && earlier(best_end_time, current_event_start)){
                         closest_after  = current_event_end
                         cael = getLocation(current_event)
                         if(cael == undefined){
@@ -210,10 +210,11 @@ function naiveScheduleWithLocationAndRange(schedules, start_date, end_date, dail
                 closest_prev_event_loc.push(cpel)
                 closest_after_event_loc.push(cael)
             }
+            /*
             console.log(closest_prev_event_time)
             console.log(closest_after_event_time)
             console.log(closest_prev_event_loc)
-            console.log(closest_after_event_loc)
+            console.log(closest_after_event_loc)*/
             //TODO for tim: These should be lists of locations of events just before and after. 
             // array lenghs = number of schedulers considered
             // 'undefined' means that no event is before and after the scheduled event for this day
@@ -221,7 +222,6 @@ function naiveScheduleWithLocationAndRange(schedules, start_date, end_date, dail
                     times: [best_start_time, time_add(best_start_time, event_length), best_date],
                     prev_locations: closest_prev_event_loc,
                     after_locations: closest_after_event_loc,
-                    utility:best_utility
                 }
             )
         }
