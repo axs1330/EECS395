@@ -157,7 +157,7 @@ export default {
   methods: {
     sendMeetingInfo(){
       var endDate = new Date(this.endDate);
-      var startDate = new Date(this.endDate);
+      var startDate = new Date(this.startDate);
       var startres = this.start.concat(':00-05:00');
       var endres = this.end.concat(':00-05:00');
       var durationres = this.hourLabels[this.durationHr].concat(':', this.minLabels[this.durationMn], ':00');

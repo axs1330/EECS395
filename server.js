@@ -362,7 +362,6 @@ function removeGroupFromUsers(group, userIds) {
   .catch(err => console.error(err));
 }
 
-// TODO update when scheduler considers date range
 /**
  * Returns a promise that returns a list of possible meeting times from the scheduler.
  * @param {string} meetingParams.groupId the ID of the group
@@ -372,81 +371,77 @@ function removeGroupFromUsers(group, userIds) {
  * @param {string} meetingParams.endTime the latest time of the meeting, formatted "hh:mm:ss-hh:mm"
  * @param {string} meetingParams.duration the duration of the meeting, formatted "hh:mm:ss"
  */
-function scheduleMeeting(meetingParams) {
+async function scheduleMeeting(meetingParams) {
+  console.log(meetingParams);
+  // Format all parameters to be input into scheduler
+  // TODO fix hardcodes UTC offsets
   const formattedStartDate = meetingParams.startDate.split('T')[0];
-  const formattedEndDate = meetingParams.startDate.split('T')[0];
+  const formattedEndDate = meetingParams.endDate.split('T')[0];
+  const formattedStartTime = meetingParams.startTime.split('-')[0];
+  const formattedEndTime = meetingParams.endTime.split('-')[0];
+
+  const sdParts = formattedStartDate.split('-');
+  const startDateObj = new Date(sdParts[0], sdParts[1] - 1, sdParts[2]);
+  const edParts = formattedEndDate.split('-');
+  const endDateObj = new Date(edParts[0], edParts[1] - 1, edParts[2]);
+
+  const numDays = Math.trunc((Date.parse(endDateObj) - Date.parse(startDateObj)) / (1000 * 60 * 60 * 24)) + 1;
+  const timeRanges = await Promise.all(Array.from({length: numDays}).map(x => [formattedStartTime, formattedEndTime]));
+
   const startDateTime = formattedStartDate.concat('T', meetingParams.startTime);
   const endDateTime = formattedEndDate.concat('T', meetingParams.endTime);
 
-  return allMemberEventsOfGroup(meetingParams.groupId, startDateTime, endDateTime)
-  .then(memberEvents => {
-    return new Promise((resolve, reject) => {
-      resolve(
-        scheduler.naiveScheduleWithLocation(
-          memberEvents,
-          startDateTime,
-          endDateTime,
-          meetingParams.duration,
-          '00:05:00')
-      );
-    });
-  })
-  .then(results => {
-    const {times, prev_locations, after_locations} = results;
-    // TODO maybe first go by valid address count?
-    return Promise.all([
-      times,
-      closestMeetingLocation(prev_locations),
-      closestMeetingLocation(after_locations)
-    ]);
-  })
-  .then(([times, prev, after]) => {
-    const finalLocation = prev.distance < after.distance ? prev : after;
-    return [
-      {
-        startTime: times[2].concat('T', times[0], '-05:00'),
-        endTime: times[2].concat('T', times[1], '-05:00'),
+  // Obtain member events and determine meeting times/locations
+  const memberEvents = await allMemberEventsOfGroup(meetingParams.groupId, startDateTime, endDateTime);
+  const schedulerResults = scheduler.naiveScheduleWithLocationAndRange(
+    memberEvents,
+    formattedStartDate,
+    formattedEndDate,
+    timeRanges,
+    meetingParams.duration,
+    '00:05:00',
+    5
+  );
+
+  // Map all valid locations to coordinates
+  const coordinatesMap = await locationCoordinatesMap(schedulerResults);
+
+  // Determine closest location for each possible meeting time
+  const optimalMeetings = await Promise.all(schedulerResults.map(async meeting => {
+    let prevLocation = await closestMeetingLocation(meeting.prev_locations, coordinatesMap);
+    let afterLocation = await closestMeetingLocation(meeting.after_locations, coordinatesMap);
+    let finalLocation = prevLocation.distance < afterLocation.distance ? prevLocation : afterLocation;
+    return {
+        startTime: meeting.times[2].concat('T', meeting.times[0], '-05:00'),
+        endTime: meeting.times[2].concat('T', meeting.times[1], '-05:00'),
         location: finalLocation.location
-      }
-    ]
-  })
-  .catch(err => console.error(err));
+    }
+  }));
+
+  return optimalMeetings;
 }
 
-// TODO move these to another module
-async function closestMeetingLocation(locations) {
-  let optimalMeeting = {
-    location: null,
-    distance: Infinity
-  };
-  const validLocations = await locations.filter(l => l !== null && l !== 'undefined');
-  if (!validLocations.length) return optimalMeeting;
+// TODO move these location-related functions to another module
+async function locationCoordinatesMap(meetingsInfo) {
+  // Get all "valid" meeting location addresses
+  const allLocations = await Promise.all(meetingsInfo.map(m => {
+    return [].concat(m.prev_locations, m.after_locations);
+  }));
+  let locationSet = new Set([].concat(...allLocations, meetingLocations));
+  locationSet.delete(null);
+  locationSet.delete('undefined');
 
-  const candidateCoordinates = await Promise.all(meetingLocations.map(l => address2Coordinates(l)));
-  const locationCoordinates = await Promise.all(validLocations.map(l => address2Coordinates(l)));
-
-  let minIndex = 0;
-  let minDistance = Infinity;
-  for (let i in candidateCoordinates) {
-    let candidate = candidateCoordinates[i];
-    let distanceSum = 0;
-    for (let j in locationCoordinates) {
-      let location = locationCoordinates[j];
-      distanceSum += distance(candidate, location);
-    }
-    if (distanceSum < minDistance) {
-      minIndex = i;
-      minDistance = distanceSum;
-    }
+  // Map all valid meeting location addresses to coordinates
+  // TODO better determine what is a valid address, this way is NOT GOOD
+  let coordinatesMap = new Map();
+  for (let l of locationSet.values()) {
+    if (!l.includes('Cleveland')) continue;
+    const coordinates = await address2Coordinates(l);
+    if (!coordinates) continue;
+    coordinatesMap.set(l, coordinates);
   }
 
-  optimalMeeting.location = {
-    address: meetingLocations[minIndex],
-    lat: candidateCoordinates[minIndex].lat,
-    lng: candidateCoordinates[minIndex].lng
-  };
-  optimalMeeting.distance = minDistance;
-  return optimalMeeting;
+  return coordinatesMap;
 }
 
 function address2Coordinates(address) {
@@ -458,7 +453,46 @@ function address2Coordinates(address) {
     timeout: 1000
   })
   .then(res => res.data.results[0].geometry.location)
-  .catch(err => console.error(err));
+  .catch(err => {
+    console.error(err);
+    return null;
+  });
+}
+
+// TODO maybe first go by valid address count?
+async function closestMeetingLocation(locations, coordinatesMap) {
+  let optimalMeeting = {
+    location: null,
+    distance: Infinity
+  };
+
+  // Stop if there are no valid locations in this list
+  const validLocations = await Promise.all(locations.filter(l => l !== null && coordinatesMap.has(l)));
+  if (!validLocations.length) return optimalMeeting;
+
+  // Determine most central meeting location
+  let minCandidate = meetingLocations[0];
+  let minDistance = Infinity;
+  for (let candidate of meetingLocations) {
+    let distanceSum = 0;
+    for (let location of validLocations) {
+      let candidateCoordinates = coordinatesMap.get(candidate);
+      let locationCoordinates = coordinatesMap.get(location);
+      distanceSum += distance(candidateCoordinates, locationCoordinates);
+    }
+    if (distanceSum < minDistance) {
+      minCandidate = candidate;
+      minDistance = distanceSum;
+    }
+  }
+
+  optimalMeeting.location = {
+    address: minCandidate,
+    lat: coordinatesMap.get(minCandidate).lat,
+    lng: coordinatesMap.get(minCandidate).lng,
+  };
+  optimalMeeting.distance = minDistance;
+  return optimalMeeting;
 }
 
 function distance(l1, l2, scale = 1000) {
@@ -558,21 +592,14 @@ async function deleteMeeting(groupId, meetingId) {
 ////////// POST ROUTES ////////////////////////////////////////////////////////////////////////////
 
 // TODO delete after finished debugging server
-app.get("/test", (req, res) => {
-  // const meeting = {
-  //   groupId: '5ea1e09ac3b7ed2a60d398f3',
-  //   startTime: '2020-04-24T14:00:00-05:00',
-  //   endTime: '2020-04-24T16:00:00-05:00',
-  //   location: '11038 Bellflower Rd, Cleveland, OH 44106'
-  // };
-  // createMeeting(meeting)
+app.get("/test", async (req, res) => {
   const meetingParams = {
     groupId: '5ea1e09ac3b7ed2a60d398f3',
     startDate: '2020-02-19T00:00:00',
-    endDate: '2020-02-19T00:00:00',
-    startTime: '04:30:00-05:00',
-    endTime: '23:30:00-05:00',
-    duration: '00:40:00',
+    endDate: '2020-02-21T00:00:00',
+    startTime: '09:30:00-05:00',
+    endTime: '21:30:00-05:00',
+    duration: '00:30:00',
     interval: '00:05:00',
   };
   scheduleMeeting(meetingParams)
