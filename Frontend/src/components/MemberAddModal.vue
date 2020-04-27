@@ -31,7 +31,7 @@ export default {
   },
   methods: {
     cleanupModal() {
-      this.name= "";
+      this.tmembers= [];
       this.$emit('close-modal');
       this.$emit('refresh-groups');
       //TODO: create event to refresh list of groups

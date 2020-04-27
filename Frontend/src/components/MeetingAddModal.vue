@@ -161,8 +161,8 @@ export default {
       var startres = this.start.concat(':00-05:00');
       var endres = this.end.concat(':00-05:00');
       var durationres = this.hourLabels[this.durationHr].concat(':', this.minLabels[this.durationMn], ':00');
-      this.$emit('send-meeting', startDate.toISOString(), endDate.toISOString(), startres, endres, durationres)
-
+      this.$emit('send-meeting', startDate.toISOString(), endDate.toISOString(), startres, endres, durationres);
+      this.$emit('close-modal');
     }
   }
 };

@@ -5,7 +5,6 @@ const Express = require('express');
 const BodyParser = require("body-parser");
 const MongoClient = require('mongodb').MongoClient;
 const ObjectId = require('mongodb').ObjectID;
-const rp = require('request-promise');
 const {google} = require('googleapis');
 const MapsClient = require("@googlemaps/google-maps-services-js").Client;
 
@@ -18,7 +17,6 @@ const DATABASE_NAME = 'test';
 
 const CALENDAR_CREDENTIALS = 'credentials-calendar.json';
 const GEOCODING_API_KEY = 'api-key-geocoding.txt';
-const GEO_URL_BASE = 'https://maps.googleapis.com/maps/api/geocode/json?address=';
 
 const SCOPES = [
   'https://www.googleapis.com/auth/calendar',
@@ -31,6 +29,7 @@ var app = Express();
 var oAuth2Client;
 var geocodingKey;
 var usersCursor, groupsCursor;
+var geocodingClient;
 var currentUser;
 
 // TODO store these in db or fs instead
@@ -69,6 +68,7 @@ app.listen(port, () => {
   });
 
   // Read geocoding API key
+  geocodingClient = new MapsClient({});
   fs.readFile(GEOCODING_API_KEY, (err, content) => {
     if (err) return console.error(err.message);
     geocodingKey = content;
@@ -450,16 +450,14 @@ async function closestMeetingLocation(locations) {
 }
 
 function address2Coordinates(address) {
-  const formattedAddress = address.replace(' ', '+');
-  const url = GEO_URL_BASE.concat(formattedAddress, '&key=', geocodingKey);
-  const options = {
-    uri: url,
-    headers: { 'User-Agent': 'Request-Promise' },
-    json: true
-  };
-
-  return rp(options)
-  .then(res => res.results[0].geometry.location)
+  return geocodingClient.geocode({
+    params: {
+      address: address,
+      key: geocodingKey
+    },
+    timeout: 1000
+  })
+  .then(res => res.data.results[0].geometry.location)
   .catch(err => console.error(err));
 }
 

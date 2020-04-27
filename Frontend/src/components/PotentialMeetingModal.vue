@@ -8,9 +8,11 @@
             Meeting {{i + 1}}
           </v-tab>
           <v-tabs-items v-model="meeting" vertical>
-            <p>Start Time: {{new Date(meeting.startTime).toString()}}</p>
-            <p>End Time: {{new Date(meeting.endTime).toString()}}</p>
-            <p v-if="meeting.location != null">Location: {{meeting.location.address}}</p>
+            <v-tab-item v-for="meeting in meetings" v-bind:key="meeting.startTime">
+              <p>Start Time: {{new Date(meeting.startTime).toString()}}</p>
+              <p>End Time: {{new Date(meeting.endTime).toString()}}</p>
+              <p v-if="meeting.location != null">Location: {{meeting.location.address}}</p>
+            </v-tab-item>
           </v-tabs-items>
         </v-tabs>
       </v-card-text>
@@ -34,8 +36,8 @@ export default {
 
   methods: {
     confirmMeeting(){
-      this.$emit('confirm-meeting', this.meetings[this.meeting])
-
+      this.$emit('confirm-meeting', this.meetings[this.meeting]);
+      this.$emit('close-modal');
     }
   }
 };
