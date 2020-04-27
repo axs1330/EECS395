@@ -478,7 +478,6 @@ function distance(l1, l2, scale = 1000) {
 // TODO 
 // custom time zone (group prefs)
 // option for recurrence
-// attendees: group.members
 // option for reminders
 /**
  * Returns a promise that creates a meeting and Google event with the given parameters.
@@ -492,6 +491,7 @@ function distance(l1, l2, scale = 1000) {
 async function createMeeting(meetingProperties) {
   const id = new ObjectId(meetingProperties.groupId)
   const group = await groupsCursor.findOne({ _id: id });
+  const attendees = await Promise.all(group.members.map(m => { return { email: m }; }));
   const eventTemplate = {
     'summary': `${group.name} Meeting`,
     'location': meetingProperties.location,
@@ -509,8 +509,7 @@ async function createMeeting(meetingProperties) {
       'timeZone': 'America/New_York',
     },
     'recurrence': [ ],
-    'attendees': [ ],
-    // 'attendees': group.members,
+    'attendees': attendees,
     'reminders': {
       'useDefault': true,
     }
@@ -523,6 +522,8 @@ async function createMeeting(meetingProperties) {
     auth: oAuth2Client,
     calendarId: 'primary',
     resource: eventTemplate,
+    // Uncomment line below to send email invites
+    // sendNotifications: 'all'
   })
   .then(event => {
     const meetingToAdd = {
