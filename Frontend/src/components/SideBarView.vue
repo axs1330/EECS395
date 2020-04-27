@@ -52,7 +52,7 @@ export default {
       group: 0,
       errored: false,
       loading: true,
-      groups: [],
+      groups: null,
       dialog: false
     };
   },
@@ -66,7 +66,7 @@ export default {
                 console.log(error)
                 this.errored = true
             })
-            .finally(() => this.loading = false)
+            .finally(() => this.loading = false);
   },
 
   methods:{
@@ -79,20 +79,24 @@ export default {
           console.log(error)
           this.errored = true
         })
-        .finally(() => this.loading = false)
+        .finally(() => this.loading = false);
     },
 
     removeMember(group, member){
-      var members = [member]
-      HTTP.post('/remove-members', {
-        groupId: group._id,
-        userIds: members
-      })
-      .then(response => {
-        response
-      })
-      this.refreshGroups()
-    }
+          var members = [member]
+          HTTP.post('/remove-members', {
+            groupId: group._id,
+            userIds: members
+          })
+          .then(response => {
+            response
+            this.refreshGroups()
+          })
+          .catch(error => {
+            console.log(error)
+
+          });
+        }
 
   }
 };

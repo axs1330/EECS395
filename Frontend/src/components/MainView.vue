@@ -4,7 +4,7 @@
       <p>{{group.name}}</p>
     </v-card-title>
         <div class="text-center">
-            <v-chip  close v-for="member in group.members" v-bind:key="member" @click:close="$emit('remove-member', group, member)" class="text-center">
+            <v-chip  close v-for="member in tmembers" v-bind:key="member" @click:close="$emit('remove-member', group, member)" class="text-center">
                 {{member}}
             </v-chip>
             <v-dialog persistent v-model="dialog" width="unset">
@@ -13,7 +13,7 @@
                         <v-icon>mdi-plus</v-icon>
                     </v-btn>
                 </template>
-                <MemberAddModal v-bind:members="group.members"
+                <MemberAddModal v-bind:members="tmembers"
                                 v-bind:groupName="group.name"
                                 v-bind:groupId="group._id"
                                 v-on:close-modal="dialog = false"
@@ -23,7 +23,7 @@
         </div>
     <v-list dense class="justify-center">
       <v-list-item-group v-model="meetingIndex" color="primary">
-        <v-list-item v-for="meeting in group.meetings" v-bind:key="meeting.id">
+        <v-list-item v-for="meeting in tmeetings" v-bind:key="meeting.id">
           <p>Start Time: {{new Date(meeting.start).toString()}}</p>
           <p>End Time: {{new Date(meeting.end).toString()}}</p>
           <p v-if="meeting.location != null">Location: {{meeting.location}}</p>
@@ -62,7 +62,6 @@ export default {
     return {
       dialog: false,
       mdialog: false,
-      members: [],
       meetingIndex: 0,
       potentialMeetings: [],
       pMeetingDialog: false
@@ -82,6 +81,7 @@ export default {
       })
       .then(response => {
         response
+        this.$emit('refresh-groups');
       })
       .catch(error => {
         console.log(error)
@@ -108,7 +108,6 @@ export default {
     },
 
     confirmMeeting(meeting){
-
       var ad;
       if(meeting.location == null){
         ad = null;
@@ -126,13 +125,23 @@ export default {
       })
       .then(response => {
         response
+        this.$emit('refresh-groups')
       })
       .catch(error => {
         console.log(error)
       });
     }
 
+  },
+  computed: {
+    tmembers(){
+      return this.group.members;
+    },
+    tmeetings(){
+      return this.group.meetings;
+    }
   }
+
 };
 </script>
 <style>
