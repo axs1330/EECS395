@@ -65,7 +65,7 @@ app.listen(port, () => {
     if (err) return console.error(err.message);
     const credentials = JSON.parse(content);
     const {client_id, client_secret, redirect_uris } = credentials.web;
-    oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[1])
+    oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0])
   });
 
   // Read geocoding API key
