@@ -22,11 +22,11 @@
             </v-dialog>
         </div>
     <v-list dense class="justify-center">
-      <v-list-item-group v-model="meeting" color="primary">
+      <v-list-item-group v-model="meetingIndex" color="primary">
         <v-list-item v-for="meeting in group.meetings" v-bind:key="meeting.id">
-          {{meeting.start}}
-          {{meeting.end}}
-          {{meeting.location}}
+          <p>Start Time: {{new Date(meeting.start).toString()}}</p>
+          <p>End Time: {{new Date(meeting.end).toString()}}</p>
+          <p v-if="meeting.location != null">Location: {{meeting.location}}</p>
           <v-btn fab x-small outlined color="primary" @click="removeMeeting(meeting.id)">
             <v-icon>mdi-close</v-icon>
           </v-btn>
@@ -63,8 +63,7 @@ export default {
       dialog: false,
       mdialog: false,
       members: [],
-      meetings: [],
-      meeting: 0,
+      meetingIndex: 0,
       potentialMeetings: [],
       pMeetingDialog: false
 
@@ -77,7 +76,7 @@ export default {
     removeMeeting(meetingId){
       console.log(this.group._id);
       console.log(meetingId);
-    /*  HTTP.post('/delete-meeting', {
+      HTTP.post('/delete-meeting', {
         groupId: this.group._id,
         meetingId: meetingId
       })
@@ -86,7 +85,7 @@ export default {
       })
       .catch(error => {
         console.log(error)
-      });*/
+      });
     },
 
     sendMeetingDetails(startDate, endDate, start, end, duration){
@@ -109,6 +108,7 @@ export default {
     },
 
     confirmMeeting(meeting){
+
       var ad;
       if(meeting.location == null){
         ad = null;
@@ -116,6 +116,8 @@ export default {
       else{
         ad = meeting.location.address;
       }
+      console.log(meeting);
+      console.log(this.group._id, meeting.startTime, meeting.endTime, ad);
       HTTP.post('/create-meeting', {
         groupId: this.group._id,
         startTime: meeting.startTime,

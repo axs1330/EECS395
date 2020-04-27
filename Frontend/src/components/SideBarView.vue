@@ -34,7 +34,6 @@
         </v-tab-item>
       </v-tabs-items>
     </v-tabs>
-    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
   </div>
 </template>
 

@@ -520,8 +520,8 @@ async function createMeeting(meetingProperties) {
   .then(event => {
     const meetingToAdd = {
       id: event.data.id,
-      startTime: event.data.start.dateTime,
-      endTime: event.data.end.dateTime,
+      start: event.data.start.dateTime,
+      end: event.data.end.dateTime,
       location: event.data.location
     };
     return groupsCursor.updateOne(
