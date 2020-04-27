@@ -37,7 +37,7 @@ export default {
   data(){
     return{
       url: null,
-      auth: true,
+      auth: false,
       authEmail: ""
     }
   },
@@ -48,19 +48,26 @@ export default {
       })
       .then(response => {
         this.url = response.data;
-
-        // TODO
-        // i think that the google sign-in flow can only be configured to redirect to some route on the server
-        // so there's currently no way for the frontend to initiate a http request for user group data
-        // the only way the server response data is displayed correctly is when the server sends a response and the frontend unknowingly receives it
-        // if there is a way for the frontend to listen for the next incoming http response and then call a method, this can be solved
-        // uncommenting the line below gets all group info to show up, but completely skips the sign-in process
-        // this.auth = true;
       })
       .catch(error => {
         console.log(error)
       });
     }
+  },
+  mounted() {
+    const code = this.$route.query.code;
+    if (!code) return;
+
+    HTTP.post('/auth', {
+      code: code
+    })
+    .then(response => {
+      this.$router.replace({ 'query': null });
+      if (response.status === 200) {
+        this.auth = true;
+      }
+    })
+    .catch(error => console.log(error));
   }
 };
 </script>

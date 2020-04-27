@@ -65,7 +65,7 @@ app.listen(port, () => {
     if (err) return console.error(err.message);
     const credentials = JSON.parse(content);
     const {client_id, client_secret, redirect_uris } = credentials.web;
-    oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0])
+    oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[1])
   });
 
   // Read geocoding API key
@@ -77,15 +77,8 @@ app.listen(port, () => {
   console.log(`Listening on port ${port}...`);
 });
 
-// TODO keep for debugging
-app.get("/", (req, res) => {
-  res.redirect('/api/authorize');
-})
-
 app.post("/api/authorize", async (req, res) => {
   currentUser = req.body.email;
-  // TODO remove below after debugging server
-  // currentUser = 'tcj16@case.edu';
   let authParams = {
     access_type: 'offline',
     scope: SCOPES,
@@ -110,11 +103,10 @@ app.post("/api/authorize", async (req, res) => {
 
   const authUrl = oAuth2Client.generateAuthUrl(authParams);
   res.send(authUrl)
-  // res.redirect(authUrl);
 });
 
-app.get("/auth", (req, res) => {
-  const {code, scopes} = req.query;
+app.post("/auth", (req, res) => {
+  const code = req.body.code;
   if (!code) {
     return res.status(500).send('Could not find user authorization code.')
   }
@@ -568,7 +560,7 @@ async function deleteMeeting(groupId, meetingId) {
 ////////// POST ROUTES ////////////////////////////////////////////////////////////////////////////
 
 // TODO delete after finished debugging server
-app.get("/home", (req, res) => {
+app.get("/test", (req, res) => {
   // const meeting = {
   //   groupId: '5ea1e09ac3b7ed2a60d398f3',
   //   startTime: '2020-04-24T14:00:00-05:00',
@@ -590,12 +582,14 @@ app.get("/home", (req, res) => {
   .catch(err => res.status(500).send(err));
 });
 
-app.post("/home", (req, res) => {
+app.get("/home", (req, res) => {
   groupsOfCurrentUser()
-  .then(events => {
-    res.send(events);
-  })
+  .then(events => res.send(events))
   .catch(err => res.status(500).send(err));
+});
+
+app.post("/home", (req, res) => {
+  res.redirect('/home');
 });
 
 app.post("/create-group", (req, res) => {
