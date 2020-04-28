@@ -5,7 +5,11 @@
     </v-app-bar>
     <v-content fluid class="fill-height">
       <v-container fluid class="fill-height">
-        <section v-if="isUserAuthenticated" fluid class="fill-height">
+        <section v-if="loading" class="justify-center">
+            <!-- TODO center this loading icon -->
+            <v-progress-circular color="grey lighten-1" indeterminate> </v-progress-circular>
+        </section>
+        <section v-else-if="isUserAuthenticated" fluid class="fill-height">
         <v-row class="fill-height">
             <v-col fill-height>
               <SideBarView/>
@@ -42,7 +46,8 @@ export default {
   data(){
     return {
       isUserAuthenticated: false,
-      authEmail: null
+      authEmail: null,
+      loading: false
     }
   },
   methods:{
@@ -58,10 +63,12 @@ export default {
       });
     }
   },
-  mounted() {
+  created() {
+    // Query parameter "code" only exists after completing authentication
     const code = this.$route.query.code;
     if (!code) return;
 
+    this.loading = true;
     HTTP.post('/auth', {
       code: code
     })
@@ -71,7 +78,8 @@ export default {
         this.isUserAuthenticated = true;
       }
     })
-    .catch(error => console.log(error));
+    .catch(error => console.log(error))
+    .finally(() => this.loading = false);
   }
 };
 </script>
