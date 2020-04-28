@@ -3,8 +3,8 @@
     <v-card>
       <v-card-title class="headline">Add a Meeting</v-card-title>
       <v-card-text>
-        <v-tabs vertical>
-          <v-tab v-for="(meeting, i) in meetings" v-bind:key="meeting.startTime" class="text-center">
+        <v-tabs vertical v-model="meeting">
+          <v-tab v-for="(meeting,i) in meetings" v-bind:key="meeting.startTime" class="text-center">
             Meeting {{i + 1}}
           </v-tab>
           <v-tabs-items v-model="meeting" vertical>

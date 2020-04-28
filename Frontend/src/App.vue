@@ -5,7 +5,11 @@
     </v-app-bar>
     <v-content fluid class="fill-height">
       <v-container fluid class="fill-height">
-        <section v-if="isUserAuthenticated" fluid class="fill-height">
+        <section v-if="loading" class="justify-center">
+            <!-- TODO center this loading icon -->
+            <v-progress-circular color="grey lighten-1" indeterminate> </v-progress-circular>
+        </section>
+        <section v-else-if="isUserAuthenticated" fluid class="fill-height">
         <v-row class="fill-height">
             <v-col fill-height>
               <SideBarView/>
@@ -17,13 +21,12 @@
             <v-card-title dark color="blue darken-4">
               <p>Sign In to CampusScheduler</p>
             </v-card-title>
-            <v-text-field type="email" label="Enter your Email address" v-model="authEmail">
+            <v-text-field type="email" label="Enter your Email address" v-model="authEmail" v-on:keyup.enter="sendAuthEmail">
             </v-text-field>
             <v-card-actions>
               <v-btn fab dark color="blue darken-4" @click="sendAuthEmail"><v-icon>mdi-send</v-icon></v-btn>
             </v-card-actions>
           </v-card>
-
         </section>
       </v-container>
     </v-content>
@@ -43,7 +46,8 @@ export default {
   data(){
     return {
       isUserAuthenticated: false,
-      authEmail: null
+      authEmail: null,
+      loading: false
     }
   },
   methods:{
@@ -59,10 +63,12 @@ export default {
       });
     }
   },
-  mounted() {
+  created() {
+    // Query parameter "code" only exists after completing authentication
     const code = this.$route.query.code;
     if (!code) return;
 
+    this.loading = true;
     HTTP.post('/auth', {
       code: code
     })
@@ -72,7 +78,8 @@ export default {
         this.isUserAuthenticated = true;
       }
     })
-    .catch(error => console.log(error));
+    .catch(error => console.log(error))
+    .finally(() => this.loading = false);
   }
 };
 </script>

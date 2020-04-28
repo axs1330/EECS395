@@ -668,6 +668,7 @@ function time_add(time, increment){
    return finalTime
 }
 
+module.exports.naiveScheduleWithLocationAndRange = naiveScheduleWithLocationAndRange;
 module.exports.naiveScheduleWithLocation = naiveScheduleWithLocation;
 module.exports.getEndTimeTest = getEndTime;
 module.exports.parseScheduleFilesTest = parseScheduleFiles;
