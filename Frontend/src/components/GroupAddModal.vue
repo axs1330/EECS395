@@ -46,7 +46,9 @@ export default {
         name: this.groupName,
         members: this.members,
         meetings: [],
-        group_prefs: {}
+        group_prefs: {
+          meeting_locations: []
+        }
       })
       .then(response => {
         response

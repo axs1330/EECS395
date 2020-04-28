@@ -25,6 +25,17 @@ const SCOPES = [
   'https://www.googleapis.com/auth/userinfo.profile'
 ];
 
+// TODO fallback meeting locations if not defined in group_prefs
+const DEFAULT_MEETING_LOCATIONS = [
+  "11038 Bellflower Rd, Cleveland, OH 44106", // Tink
+  "11451 Juniper Dr, Cleveland, OH 44106", // Wade
+  "11055 Euclid Ave, Cleveland, OH 44106", // KSL
+  "2095 Martin Luther King Jr Dr, Cleveland, OH 44106", // Nord
+  "11119 Bellflower Rd, Cleveland, OH 44106", // PBL
+	"2315 Murray Hill Rd, Cleveland, OH 44106", //	Fribley
+  "1681 E 115th St, Cleveland, OH 44106" //	House 4 Starbucks
+];
+
 var app = Express();
 var oAuth2Client;
 var geocodingKey;
@@ -143,7 +154,9 @@ function createOrUpdateCurrentUser(profileData, token, callback) {
         name: profileData.name,
         token: refreshToken,
         groups: [],
-        user_prefs: {}
+        user_prefs: {
+          calendars: []
+        }
       });
     }
   })
@@ -397,7 +410,12 @@ async function scheduleMeeting(meetingParams) {
   // TODO cache meeting location coordinates in db
   // Map all valid locations to coordinates
   const group = await groupsCursor.findOne({ _id: new ObjectId(meetingParams.groupId) });
-  const meetingLocations = await Promise.all(group.group_prefs.meeting_locations.map(l => l.address));
+  let meetingLocations = await Promise.all(group.group_prefs.meeting_locations.map(l => l.address));
+  // TODO quick fix for empty meeting_locations in group_prefs
+  if (!meetingLocations.length) {
+    console.log('Using default meeting locations list...');
+    meetingLocations = DEFAULT_MEETING_LOCATIONS;
+  }
   const coordinatesMap = await locationCoordinatesMap(schedulerResults, meetingLocations);
 
   // Determine closest location for each possible meeting time
@@ -409,7 +427,7 @@ async function scheduleMeeting(meetingParams) {
         startTime: meeting.times[2].concat('T', meeting.times[0], '-05:00'),
         endTime: meeting.times[2].concat('T', meeting.times[1], '-05:00'),
         location: finalLocation.location
-    }
+    };
   }));
 
   console.log(optimalMeetings);
@@ -629,7 +647,6 @@ app.post("/delete-group", (req, res) => {
 
 app.post("/add-members", (req, res) => {
   const {groupId, userIds} = req.body;
-  console.log(userIds);
   addUsersToGroup(groupId, userIds)
   .then(result => res.send(result))
   .catch(err => res.status(500).send(err))
