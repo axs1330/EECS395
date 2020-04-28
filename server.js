@@ -32,14 +32,6 @@ var usersCursor, groupsCursor;
 var geocodingClient;
 var currentUser;
 
-// TODO store these in db or fs instead
-var meetingLocations = [
-  "11038 Bellflower Rd, Cleveland, OH 44106",
-  "11451 Juniper Dr, Cleveland, OH 44106",
-  "11055 Euclid Ave, Cleveland, OH 44106",
-  "2095 Martin Luther King Jr Dr, Cleveland, OH 44106"
-];
-
 app.use(BodyParser.json());
 app.use(BodyParser.urlencoded({ extended: true }));
 app.use(function(req, res, next) {
@@ -372,7 +364,6 @@ function removeGroupFromUsers(group, userIds) {
  * @param {string} meetingParams.duration the duration of the meeting, formatted "hh:mm:ss"
  */
 async function scheduleMeeting(meetingParams) {
-  console.log(meetingParams);
   // Format all parameters to be input into scheduler
   // TODO fix hardcodes UTC offsets
   const formattedStartDate = meetingParams.startDate.split('T')[0];
@@ -403,13 +394,16 @@ async function scheduleMeeting(meetingParams) {
     5
   );
 
+  // TODO cache meeting location coordinates in db
   // Map all valid locations to coordinates
-  const coordinatesMap = await locationCoordinatesMap(schedulerResults);
+  const group = await groupsCursor.findOne({ _id: new ObjectId(meetingParams.groupId) });
+  const meetingLocations = await Promise.all(group.group_prefs.meeting_locations.map(l => l.address));
+  const coordinatesMap = await locationCoordinatesMap(schedulerResults, meetingLocations);
 
   // Determine closest location for each possible meeting time
   const optimalMeetings = await Promise.all(schedulerResults.map(async meeting => {
-    let prevLocation = await closestMeetingLocation(meeting.prev_locations, coordinatesMap);
-    let afterLocation = await closestMeetingLocation(meeting.after_locations, coordinatesMap);
+    let prevLocation = await closestMeetingLocation(meeting.prev_locations, meetingLocations, coordinatesMap);
+    let afterLocation = await closestMeetingLocation(meeting.after_locations, meetingLocations, coordinatesMap);
     let finalLocation = prevLocation.distance < afterLocation.distance ? prevLocation : afterLocation;
     return {
         startTime: meeting.times[2].concat('T', meeting.times[0], '-05:00'),
@@ -418,11 +412,13 @@ async function scheduleMeeting(meetingParams) {
     }
   }));
 
+  console.log(optimalMeetings);
+
   return optimalMeetings;
 }
 
 // TODO move these location-related functions to another module
-async function locationCoordinatesMap(meetingsInfo) {
+async function locationCoordinatesMap(meetingsInfo, meetingLocations) {
   // Get all "valid" meeting location addresses
   const allLocations = await Promise.all(meetingsInfo.map(m => {
     return [].concat(m.prev_locations, m.after_locations);
@@ -460,7 +456,7 @@ function address2Coordinates(address) {
 }
 
 // TODO maybe first go by valid address count?
-async function closestMeetingLocation(locations, coordinatesMap) {
+async function closestMeetingLocation(locations, meetingLocations, coordinatesMap) {
   let optimalMeeting = {
     location: null,
     distance: Infinity
@@ -592,7 +588,7 @@ async function deleteMeeting(groupId, meetingId) {
 ////////// POST ROUTES ////////////////////////////////////////////////////////////////////////////
 
 // TODO delete after finished debugging server
-app.get("/test", async (req, res) => {
+app.get("/test", (req, res) => {
   const meetingParams = {
     groupId: '5ea1e09ac3b7ed2a60d398f3',
     startDate: '2020-02-19T00:00:00',
