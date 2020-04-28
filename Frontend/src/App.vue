@@ -17,13 +17,12 @@
             <v-card-title dark color="blue darken-4">
               <p>Sign In to CampusScheduler</p>
             </v-card-title>
-            <v-text-field type="email" label="Enter your Email address" v-model="authEmail">
+            <v-text-field type="email" label="Enter your Email address" v-model="authEmail" v-on:keyup.enter="sendAuthEmail">
             </v-text-field>
             <v-card-actions>
               <v-btn fab dark color="blue darken-4" @click="sendAuthEmail"><v-icon>mdi-send</v-icon></v-btn>
             </v-card-actions>
           </v-card>
-
         </section>
       </v-container>
     </v-content>
