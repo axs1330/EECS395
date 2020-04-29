@@ -47,16 +47,21 @@ function naiveScheduleWithLocationAndRange(schedules, start_date, end_date, dail
         /*
         configs
         */
-    
-       let time_eval_mode = 'squared'
+       let allow_absense = false //if an event cannot be scheduled without conflicts
+       //let time_eval_mode = 'squared'
+
+       /*
+       intiation
+       */
        let current_date = start_date
        let day_count = 0 
        let topk_time = []
        let topk_date = []
        let topk_util = []
+
        while(date_diff(end_date, current_date) >= 0){
             let trial_time_start = daily_range[day_count][0]
-            while(time_add(trial_time_start, event_length) != false &&  time_diff(time_add(trial_time_start, event_length), daily_range[day_count][1]) < 0){
+            while(time_add(trial_time_start, event_length) != false && time_diff(time_add(trial_time_start, event_length), daily_range[day_count][1]) < 0){
             let trial_time_end = time_add(trial_time_start, event_length)
             console.log("Considering: " + trial_time_start + " to " + trial_time_end)
             let closest_previous = "00:00:00"
@@ -153,7 +158,6 @@ function naiveScheduleWithLocationAndRange(schedules, start_date, end_date, dail
             current_date = date_inc(current_date)
             day_count += 1
         }
-        //console.log(topk_time)
         topk_return = []
         for(l = 0; l < k; l++){
             //now with the k best time slots, we go back and found the closest events 
@@ -210,14 +214,6 @@ function naiveScheduleWithLocationAndRange(schedules, start_date, end_date, dail
                 closest_prev_event_loc.push(cpel)
                 closest_after_event_loc.push(cael)
             }
-            /*
-            console.log(closest_prev_event_time)
-            console.log(closest_after_event_time)
-            console.log(closest_prev_event_loc)
-            console.log(closest_after_event_loc)*/
-            //TODO for tim: These should be lists of locations of events just before and after. 
-            // array lenghs = number of schedulers considered
-            // 'undefined' means that no event is before and after the scheduled event for this day
             topk_return.push({
                     times: [best_start_time, time_add(best_start_time, event_length), best_date],
                     prev_locations: closest_prev_event_loc,
