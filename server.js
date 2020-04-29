@@ -424,8 +424,8 @@ async function scheduleMeeting(meetingParams) {
     let afterLocation = await closestMeetingLocation(meeting.after_locations, meetingLocations, coordinatesMap);
     let finalLocation = prevLocation.distance < afterLocation.distance ? prevLocation : afterLocation;
     return {
-        startTime: meeting.times[2].concat('T', meeting.times[0], '-05:00'),
-        endTime: meeting.times[2].concat('T', meeting.times[1], '-05:00'),
+        startTime: meeting.times[2].concat('T', meeting.times[0], '-04:00'),
+        endTime: meeting.times[2].concat('T', meeting.times[1], '-04:00'),
         location: finalLocation.location
     };
   }));
@@ -606,16 +606,17 @@ async function deleteMeeting(groupId, meetingId) {
 
 // TODO delete after finished debugging server
 app.get("/test", (req, res) => {
-  const meetingParams = {
-    groupId: '5ea1e09ac3b7ed2a60d398f3',
-    startDate: '2020-02-19T00:00:00',
-    endDate: '2020-02-21T00:00:00',
-    startTime: '09:30:00-05:00',
-    endTime: '21:30:00-05:00',
-    duration: '00:30:00',
-    interval: '00:05:00',
-  };
-  scheduleMeeting(meetingParams)
+  // const meetingParams = {
+  //   groupId: '5ea1e09ac3b7ed2a60d398f3',
+  //   startDate: '2020-02-19T00:00:00',
+  //   endDate: '2020-02-21T00:00:00',
+  //   startTime: '09:30:00-05:00',
+  //   endTime: '21:30:00-05:00',
+  //   duration: '00:30:00',
+  //   interval: '00:05:00',
+  // };
+  // scheduleMeeting(meetingParams)
+  allMemberEventsOfGroup('5ea1e09ac3b7ed2a60d398f3', '2020-04-29T12:00:00-05:00', '2020-05-01T17:00:00-05:00')
   .then(result => res.send(result))
   .catch(err => res.status(500).send(err));
 });
