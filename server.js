@@ -463,8 +463,7 @@ function address2Coordinates(address) {
     params: {
       address: address,
       key: geocodingKey
-    },
-    timeout: 1000
+    }
   })
   .then(res => res.data.results[0].geometry.location)
   .catch(err => {
